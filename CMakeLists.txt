@@ -33,7 +33,7 @@ endif()
 ###                     ENVIRONMENT                       ###
 #############################################################
 set(cmakeMacroPath "CMakeMacros")
-include(${cmakeMacroPath}/Environment/environment.cmake)
+#include(${cmakeMacroPath}/Environment/environment.cmake)
 
 #############################################################
 ###                   GENERAL MACROS                      ###
