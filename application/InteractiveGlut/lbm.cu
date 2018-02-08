@@ -17,7 +17,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-__global__ void initializeDistributionsKernel( D2Q9 f, uint nx, uint ny )
+__global__ void initializeDistributionsKernel( D2Q9Ptr f, uint nx, uint ny )
 {
     uint xIdx = blockIdx.x * blockDim.x + threadIdx.x;
     uint yIdx = blockIdx.y * blockDim.y + threadIdx.y;
@@ -51,7 +51,7 @@ __global__ void initializeDistributionsKernel( D2Q9 f, uint nx, uint ny )
 
 }
 
-__global__ void collisionKernel( D2Q9 f, uint nx, uint ny, float omega )
+__global__ void collisionKernel( D2Q9Ptr f, uint nx, uint ny, float omega )
 {
     uint xIdx = blockIdx.x * blockDim.x + threadIdx.x;
     uint yIdx = blockIdx.y * blockDim.y + threadIdx.y;
@@ -150,7 +150,7 @@ __global__ void collisionKernel( D2Q9 f, uint nx, uint ny, float omega )
     f.fnn[ nodeIdxpp ] = gpp;
 }
 
-__global__ void postProcessingKernel( D2Q9 f, uint nx, uint ny, float* vertices, char type )
+__global__ void postProcessingKernel( D2Q9Ptr f, uint nx, uint ny, float* vertices, char type )
 {
     uint xIdx = blockIdx.x * blockDim.x + threadIdx.x;
     uint yIdx = blockIdx.y * blockDim.y + threadIdx.y;
@@ -208,7 +208,7 @@ __global__ void postProcessingKernel( D2Q9 f, uint nx, uint ny, float* vertices,
 
 }
 
-__global__ void setGeoKernel( D2Q9 f, uint nx, uint ny, uint x, uint y, char geo )
+__global__ void setGeoKernel( D2Q9Ptr f, uint nx, uint ny, uint x, uint y, char geo )
 {
     int xIdx =  threadIdx.x - 0.5 * blockDim.x;
     int yIdx =  threadIdx.y - 0.5 * blockDim.y;
@@ -237,36 +237,21 @@ lbmSolver::lbmSolver(uint nx, uint ny)
     this->nx = nx;
     this->ny = ny;
 
-    checkCudaErrors( cudaMalloc( (void **) &this->f.f00 , nx * ny * sizeof(float) ) );
-    checkCudaErrors( cudaMalloc( (void **) &this->f.fp0 , nx * ny * sizeof(float) ) );
-    checkCudaErrors( cudaMalloc( (void **) &this->f.fn0 , nx * ny * sizeof(float) ) );
-    checkCudaErrors( cudaMalloc( (void **) &this->f.fpp , nx * ny * sizeof(float) ) );
-    checkCudaErrors( cudaMalloc( (void **) &this->f.fnp , nx * ny * sizeof(float) ) );
-    checkCudaErrors( cudaMalloc( (void **) &this->f.fpn , nx * ny * sizeof(float) ) );
-    checkCudaErrors( cudaMalloc( (void **) &this->f.fnn , nx * ny * sizeof(float) ) );
-    checkCudaErrors( cudaMalloc( (void **) &this->f.f0p , nx * ny * sizeof(float) ) );
-    checkCudaErrors( cudaMalloc( (void **) &this->f.f0n , nx * ny * sizeof(float) ) );
+    this->f.f00 = std::make_shared<floatVec>( nx * ny );
+    this->f.fp0 = std::make_shared<floatVec>( nx * ny );
+    this->f.fn0 = std::make_shared<floatVec>( nx * ny );
+    this->f.fpp = std::make_shared<floatVec>( nx * ny );
+    this->f.fnp = std::make_shared<floatVec>( nx * ny );
+    this->f.fpn = std::make_shared<floatVec>( nx * ny );
+    this->f.fnn = std::make_shared<floatVec>( nx * ny );
+    this->f.f0p = std::make_shared<floatVec>( nx * ny );
+    this->f.f0n = std::make_shared<floatVec>( nx * ny );
 
-    checkCudaErrors( cudaMalloc( (void **) &this->f.geo , nx * ny * sizeof(char) ) );
-
-    this->f.geoHost = new char [ nx * ny ];
+    this->f.geo = std::make_shared<charVec> ( nx * ny );
 }
 
 lbmSolver::~lbmSolver()
 {
-    checkCudaErrors( cudaFree( (void **) &this->f.f00 ) );
-    checkCudaErrors( cudaFree( (void **) &this->f.fp0 ) );
-    checkCudaErrors( cudaFree( (void **) &this->f.fn0 ) );
-    checkCudaErrors( cudaFree( (void **) &this->f.fpp ) );
-    checkCudaErrors( cudaFree( (void **) &this->f.fnp ) );
-    checkCudaErrors( cudaFree( (void **) &this->f.fpn ) );
-    checkCudaErrors( cudaFree( (void **) &this->f.fnn ) );
-    checkCudaErrors( cudaFree( (void **) &this->f.f0p ) );
-    checkCudaErrors( cudaFree( (void **) &this->f.f0n ) );
-
-    checkCudaErrors( cudaFree( (void **) &this->f.geo ) );
-
-    delete [] this->f.geoHost;
 }
 
 void lbmSolver::connectVertexBuffer(uint vertexBufferID)
@@ -289,15 +274,15 @@ void lbmSolver::collision()
 
     //////////////////////////////////////////////////////////////////////////
 
-    collisionKernel<<<blocks, threads>>>( this->f, this->nx, this->ny, 1.99f );
+    collisionKernel<<<blocks, threads>>>( this->getDistPtr(), this->nx, this->ny, 1.99f );
     getLastCudaError("collisionKernel failed.");
 
     //////////////////////////////////////////////////////////////////////////
 
-    swap( &f.f0n, &f.f0p );
-    swap( &f.fnn, &f.fpp );
-    swap( &f.fp0, &f.fn0 );
-    swap( &f.fpn, &f.fnp );
+    swap( f.f0n, f.f0p );
+    swap( f.fnn, f.fpp );
+    swap( f.fp0, f.fn0 );
+    swap( f.fpn, f.fnp );
 }
 
 void lbmSolver::postProcessing( char type )
@@ -316,7 +301,7 @@ void lbmSolver::postProcessing( char type )
     cudaGraphicsResourceGetMappedPointer((void **)&verticesDev, &num_bytes, this->glVertexBufferResource);
     getLastCudaError("cudaGraphicsResourceGetMappedPointer failed");
 
-    postProcessingKernel<<<blocks, threads>>>( this->f, this->nx, this->ny, verticesDev, type );
+    postProcessingKernel<<<blocks, threads>>>( this->getDistPtr(), this->nx, this->ny, verticesDev, type );
     getLastCudaError("colorKernel failed.");
 
     cudaGraphicsUnmapResources(1, &this->glVertexBufferResource, 0);
@@ -325,11 +310,11 @@ void lbmSolver::postProcessing( char type )
     //////////////////////////////////////////////////////////////////////////
 }
 
-void lbmSolver::swap( float** lhs, float** rhs )
+void lbmSolver::swap( floatVecPtr& lhs, floatVecPtr& rhs )
 {
-    float* tmp = *lhs;
-    *lhs = *rhs;
-    *rhs = tmp;
+    floatVecPtr tmp = lhs;
+    lhs = rhs;
+    rhs = tmp;
 }
 
 void lbmSolver::setGeo(uint xIdx, uint yIdx, char geo)
@@ -342,17 +327,7 @@ void lbmSolver::setGeo(uint xIdx, uint yIdx, char geo)
         threads.y += 2;
     }
 
-    setGeoKernel<<<1, threads>>>( this->f, this->nx, this->ny, xIdx, yIdx, geo );
-}
-
-void lbmSolver::uploadGeo()
-{
-    checkCudaErrors( cudaMemcpy( this->f.geo, this->f.geoHost, this->nx * this->ny * sizeof(char), cudaMemcpyHostToDevice ) );
-}
-
-void lbmSolver::downloadGeo()
-{
-    checkCudaErrors( cudaMemcpy( this->f.geoHost, this->f.geo, this->nx * this->ny * sizeof(char), cudaMemcpyDeviceToHost ) );
+    setGeoKernel<<<1, threads>>>( this->getDistPtr(), this->nx, this->ny, xIdx, yIdx, geo );
 }
 
 void lbmSolver::initializeDistributions()
@@ -362,19 +337,35 @@ void lbmSolver::initializeDistributions()
     dim3 blocks ( ( this->nx +  THREADS_PER_BLOCK - 1 ) / THREADS_PER_BLOCK,
                   ( this->ny +  THREADS_PER_BLOCK - 1 ) / THREADS_PER_BLOCK );
 
-    initializeDistributionsKernel<<<blocks, threads>>>( this->f, this->nx, this->ny );
+    initializeDistributionsKernel<<<blocks, threads>>>( this->getDistPtr(), this->nx, this->ny );
 
-    swap( &f.f0n, &f.f0p );
-    swap( &f.fnn, &f.fpp );
-    swap( &f.fp0, &f.fn0 );
-    swap( &f.fpn, &f.fnp );
+    swap( f.f0n, f.f0p );
+    swap( f.fnn, f.fpp );
+    swap( f.fp0, f.fn0 );
+    swap( f.fpn, f.fnp );
 
-    initializeDistributionsKernel<<<blocks, threads>>>( this->f, this->nx, this->ny );
-
-    downloadGeo();
+    initializeDistributionsKernel<<<blocks, threads>>>( this->getDistPtr(), this->nx, this->ny );
 }
 
 uint lbmSolver::c2i( uint xIdx, uint yIdx )
 {
     return yIdx * this->nx + xIdx;
+}
+
+D2Q9Ptr lbmSolver::getDistPtr()
+{
+    D2Q9Ptr distPtr;
+
+    distPtr.f00 = this->f.f00->data();
+    distPtr.fp0 = this->f.fp0->data();
+    distPtr.fn0 = this->f.fn0->data();
+    distPtr.fpp = this->f.fpp->data();
+    distPtr.fnp = this->f.fnp->data();
+    distPtr.fpn = this->f.fpn->data();
+    distPtr.fnn = this->f.fnn->data();
+    distPtr.f0p = this->f.f0p->data();
+    distPtr.f0n = this->f.f0n->data();
+    distPtr.geo = this->f.geo->data();
+
+    return distPtr;
 }
