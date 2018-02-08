@@ -151,13 +151,7 @@ void Visualizer::run()
 
 void Visualizer::displayCall()
 {
-    if( geoModified && ! clicked ){
-        
-        solver->uploadGeo();
-        geoModified = false;
-    }
-
-    for( int i = 0; i < 50; i++ )
+    for( int i = 0; i < 100; i++ )
         solver->collision();
 
     //////////////////////////////////////////////////////////////////////////
@@ -212,10 +206,7 @@ void Visualizer::motion(int x, int y)
             int x = int(xIdxLast) + float(idx) * xInc;
             int y = int(yIdxLast) + float(idx) * yInc;
 
-            if( delelteGeo )
-                solver->setFluid(x,y);
-            else
-                solver->setSolid(x,y);
+            solver->setGeo(x,y, delelteGeo?0:1);
         }
     }else{
         for( uint idx = 0; idx < abs(dyIdx); idx++ ){
@@ -226,10 +217,7 @@ void Visualizer::motion(int x, int y)
             int x = int(xIdxLast) + float(idx) * xInc;
             int y = int(yIdxLast) + float(idx) * yInc;
 
-            if( delelteGeo )
-                solver->setFluid(x,y);
-            else
-                solver->setSolid(x,y);
+            solver->setGeo(x,y, delelteGeo?0:1);
         }
     }
 

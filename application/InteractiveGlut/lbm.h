@@ -48,9 +48,7 @@ public:
 
     void swap( float** lhs, float** rhs );
 
-    void setSolid( uint xIdx, uint yIdx );
-
-    void setFluid( uint xIdx, uint yIdx );
+    void setGeo( uint xIdx, uint yIdx, char geo );
 
     void uploadGeo();
     void downloadGeo();

@@ -44,10 +44,10 @@ __global__ void initializeDistributionsKernel( D2Q9 f, uint nx, uint ny )
     //else if ( yIdx == 0      || yIdx == ny - 2 ) f.geo[ nodeIdx ] = 3;
     //else                                         f.geo[ nodeIdx ] = 0;
 
-    if      ( xIdx == nx - 1 || yIdx == ny - 1 ) f.geo[ nodeIdx ] = 1;
+    if      ( xIdx == nx - 1 || yIdx == ny - 1 )                   f.geo[ nodeIdx ] = 1;
     else if ( yIdx == 0      || xIdx == 0      || xIdx == nx - 2 ) f.geo[ nodeIdx ] = 2;
-    else if ( yIdx == ny - 2 ) f.geo[ nodeIdx ] = 3;
-    else                                         f.geo[ nodeIdx ] = 0;
+    else if ( yIdx == ny - 2 )                                     f.geo[ nodeIdx ] = 3;
+    else                                                           f.geo[ nodeIdx ] = 0;
 
 }
 
@@ -113,7 +113,7 @@ __global__ void collisionKernel( D2Q9 f, uint nx, uint ny, float omega, float* v
     }
     else if( geo == 2 ){
         V = 0.0f;
-        U = 0.01f;
+        U = 0.025;
 
         g00 = (   ( (-2 + 3*(U*U))*(-2 + 3*(V*V)))/9. -4.0f/9.0f );
         gp0 = ( - ( (1 + 3*U + 3*(U*U))*(-2 + 3*(V*V)))/18. -1.0f/9.0f);
@@ -127,7 +127,7 @@ __global__ void collisionKernel( D2Q9 f, uint nx, uint ny, float omega, float* v
     }
     else if( geo == 3 ){
         V = 0.0f;
-        U = 0.01f;
+        U = 0.025f;
 
         g00 = (   ( (-2 + 3*(U*U))*(-2 + 3*(V*V)))/9. -4.0f/9.0f );
         gp0 = ( - ( (1 + 3*U + 3*(U*U))*(-2 + 3*(V*V)))/18. -1.0f/9.0f);
@@ -157,8 +157,27 @@ __global__ void collisionKernel( D2Q9 f, uint nx, uint ny, float omega, float* v
 
     //////////////////////////////////////////////////////////////////////////
     
-    vertices[ 5 * nodeIdx00 + 2 ] =        sqrt( U*U + V*V ) / 0.02f;
-    vertices[ 5 * nodeIdx00 + 4 ] = 1.0f - sqrt( U*U + V*V ) / 0.02f;
+    vertices[ 5 * nodeIdx00 + 2 ] =        sqrt( U*U + V*V ) / 0.05f;
+    vertices[ 5 * nodeIdx00 + 4 ] = 1.0f - sqrt( U*U + V*V ) / 0.05f;
+}
+
+__global__ void setGeoKernel( D2Q9 f, uint nx, uint ny, uint x, uint y, char geo )
+{
+    int xIdx =  threadIdx.x - 0.5 * blockDim.x;
+    int yIdx =  threadIdx.y - 0.5 * blockDim.y;
+
+    uint r = sqrt( float(xIdx * xIdx + yIdx * yIdx) );
+
+    if( r > 0.5 * blockDim.x ) return;
+
+    xIdx += x;
+    yIdx += y;
+
+    if( xIdx < 0 || yIdx < 0 || xIdx >= nx - 1 || yIdx >= ny - 1 ) return;
+
+    uint nodeIdx = ( xIdx     ) + ( yIdx     ) * nx;
+
+    f.geo[ nodeIdx ] = geo;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -252,20 +271,17 @@ void lbmSolver::swap( float** lhs, float** rhs )
     *rhs = tmp;
 }
 
-void lbmSolver::setSolid(uint xIdx, uint yIdx)
+void lbmSolver::setGeo(uint xIdx, uint yIdx, char geo)
 {
-    if( c2i( xIdx    , yIdx     ) < this->nx * this->ny ) this->f.geoHost[ c2i( xIdx    , yIdx     ) ] = 1;
-    if( c2i( xIdx + 1, yIdx     ) < this->nx * this->ny ) this->f.geoHost[ c2i( xIdx + 1, yIdx     ) ] = 1;
-    if( c2i( xIdx + 1, yIdx + 1 ) < this->nx * this->ny ) this->f.geoHost[ c2i( xIdx + 1, yIdx + 1 ) ] = 1;
-    if( c2i( xIdx    , yIdx + 1 ) < this->nx * this->ny ) this->f.geoHost[ c2i( xIdx    , yIdx + 1 ) ] = 1;
-}
 
-void lbmSolver::setFluid(uint xIdx, uint yIdx)
-{
-    if( c2i( xIdx    , yIdx     ) < this->nx * this->ny ) this->f.geoHost[ c2i( xIdx    , yIdx     ) ] = 0;
-    if( c2i( xIdx + 1, yIdx     ) < this->nx * this->ny ) this->f.geoHost[ c2i( xIdx + 1, yIdx     ) ] = 0;
-    if( c2i( xIdx + 1, yIdx + 1 ) < this->nx * this->ny ) this->f.geoHost[ c2i( xIdx + 1, yIdx + 1 ) ] = 0;
-    if( c2i( xIdx    , yIdx + 1 ) < this->nx * this->ny ) this->f.geoHost[ c2i( xIdx    , yIdx + 1 ) ] = 0;
+    dim3 threads ( 2, 2 );
+
+    if( geo == 0 ){
+        threads.x += 2;
+        threads.y += 2;
+    }
+
+    setGeoKernel<<<1, threads>>>( this->f, this->nx, this->ny, xIdx, yIdx, geo );
 }
 
 void lbmSolver::uploadGeo()
