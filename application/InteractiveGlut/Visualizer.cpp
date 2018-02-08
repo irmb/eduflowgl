@@ -27,6 +27,8 @@ uint Visualizer::yIdxLast = 0;
 
 char Visualizer::postProcessingType = 'v';
 
+StopWatchPtr Visualizer::stopWatch = nullptr;
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,11 +40,13 @@ void Visualizer::initialize(int argc, char *argv[], uint nx, uint ny, uint pxPer
     Visualizer::pxPerVertex = pxPerVertex;
     Visualizer::solver      = solver;
     
+    Visualizer::stopWatch   = std::make_shared<StopWatch>();
+
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize(pxPerVertex*nx+16, pxPerVertex*ny+16);
     glutInitWindowPosition(300, 200);
-    glutCreateWindow("Hello World!");
+    glutCreateWindow("iRMB!");
     glutDisplayFunc(Visualizer::displayCall);
     glutMouseFunc(Visualizer::click);
     glutMotionFunc(Visualizer::motion);
@@ -154,8 +158,14 @@ void Visualizer::run()
 
 void Visualizer::displayCall()
 {
-    for( int i = 0; i < 100; i++ )
+
+    uint timeStepsPerVisualisation = 100;
+
+    for( int i = 0; i < timeStepsPerVisualisation; i++ )
         solver->collision();
+
+    std::cout << ulint(nx) *ulint(ny) * ulint(timeStepsPerVisualisation) * 1000.0 / stopWatch->getElapsedMilliSeconds() << std::endl;
+    stopWatch->reset();
 
     //////////////////////////////////////////////////////////////////////////
 

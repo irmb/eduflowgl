@@ -5,8 +5,11 @@
 #include <vector>
 
 #include "lbm.h"
+#include "Utility/StopWatch.h"
 
 typedef unsigned int uint;
+
+typedef unsigned long long ulint;
 
 class Visualizer
 {
@@ -33,6 +36,8 @@ private:
     static uint yIdxLast;
 
     static char postProcessingType;
+
+    static StopWatchPtr stopWatch;
 
     Visualizer();
 
