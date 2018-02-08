@@ -46,6 +46,8 @@ public:
 
     void collision();
 
+    void postProcessing( char type );
+
     void swap( float** lhs, float** rhs );
 
     void setGeo( uint xIdx, uint yIdx, char geo );

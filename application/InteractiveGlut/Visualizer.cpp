@@ -25,6 +25,8 @@ bool Visualizer::delelteGeo  = false;
 uint Visualizer::xIdxLast = 0;
 uint Visualizer::yIdxLast = 0;
 
+char Visualizer::postProcessingType = 'v';
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -44,6 +46,7 @@ void Visualizer::initialize(int argc, char *argv[], uint nx, uint ny, uint pxPer
     glutDisplayFunc(Visualizer::displayCall);
     glutMouseFunc(Visualizer::click);
     glutMotionFunc(Visualizer::motion);
+    glutKeyboardFunc(Visualizer::keyboard);
 
     glewInit();
 }
@@ -156,6 +159,8 @@ void Visualizer::displayCall()
 
     //////////////////////////////////////////////////////////////////////////
 
+    solver->postProcessing( postProcessingType );
+
     glDrawElements(GL_QUADS, elements.size(), GL_UNSIGNED_INT, 0);
 
     glutSwapBuffers();
@@ -225,6 +230,30 @@ void Visualizer::motion(int x, int y)
 
     xIdxLast = xIdx;
     yIdxLast = yIdx;
+}
+
+void Visualizer::keyboard(unsigned char key, int x, int y)
+{
+    switch (key)
+    {
+        case 'v':
+            std::cout << "Post Process Velocity" << std::endl;
+            postProcessingType = 'v';
+            break;
+
+        case 'p':
+            std::cout << "Post Process Pressure" << std::endl;
+            postProcessingType = 'p';
+            break;
+
+        case 'r':
+            std::cout << "Initialize Distributions" << std::endl;
+            solver->initializeDistributions();
+            break;
+
+        default:
+            break;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

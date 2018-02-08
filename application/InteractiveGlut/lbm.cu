@@ -51,7 +51,7 @@ __global__ void initializeDistributionsKernel( D2Q9 f, uint nx, uint ny )
 
 }
 
-__global__ void collisionKernel( D2Q9 f, uint nx, uint ny, float omega, float* vertices )
+__global__ void collisionKernel( D2Q9 f, uint nx, uint ny, float omega )
 {
     uint xIdx = blockIdx.x * blockDim.x + threadIdx.x;
     uint yIdx = blockIdx.y * blockDim.y + threadIdx.y;
@@ -68,11 +68,9 @@ __global__ void collisionKernel( D2Q9 f, uint nx, uint ny, float omega, float* v
 
     char  geo = f.geo[ nodeIdx00 ];
 
-    if( geo == 1 ){
-        vertices[ 5 * nodeIdx00 + 2 ] = 0.0f;
-        vertices[ 5 * nodeIdx00 + 4 ] = 0.0f;
-        return;
-    }
+    if( geo == 1 ) return;
+
+    //////////////////////////////////////////////////////////////////////////
 
     float g00 = f.f00[ nodeIdx00 ];
     float g0p = f.f0p[ nodeIdx00 ];
@@ -96,10 +94,6 @@ __global__ void collisionKernel( D2Q9 f, uint nx, uint ny, float omega, float* v
 
     //////////////////////////////////////////////////////////////////////////
 
-    if (nodeIdx00==1050){
-    float a=1.f;
-    }
-
     if( geo == 0 ){
         g00 = g00 * ( 1.0f - omega ) + omega * (   ( (1.0f + dRho) * (-2       + 3*(U*U))*(-2       + 3*(V*V)))/9.  - 4.0f/9.0f  );
         gp0 = gp0 * ( 1.0f - omega ) + omega * ( - ( (1.0f + dRho) * ( 1 + 3*U + 3*(U*U))*(-2       + 3*(V*V)))/18. - 1.0f/9.0f  );
@@ -113,7 +107,7 @@ __global__ void collisionKernel( D2Q9 f, uint nx, uint ny, float omega, float* v
     }
     else if( geo == 2 ){
         V = 0.0f;
-        U = 0.025;
+        U = 0.01f;
 
         g00 = (   ( (-2 + 3*(U*U))*(-2 + 3*(V*V)))/9. -4.0f/9.0f );
         gp0 = ( - ( (1 + 3*U + 3*(U*U))*(-2 + 3*(V*V)))/18. -1.0f/9.0f);
@@ -127,7 +121,7 @@ __global__ void collisionKernel( D2Q9 f, uint nx, uint ny, float omega, float* v
     }
     else if( geo == 3 ){
         V = 0.0f;
-        U = 0.025f;
+        U = 0.01f;
 
         g00 = (   ( (-2 + 3*(U*U))*(-2 + 3*(V*V)))/9. -4.0f/9.0f );
         gp0 = ( - ( (1 + 3*U + 3*(U*U))*(-2 + 3*(V*V)))/18. -1.0f/9.0f);
@@ -154,11 +148,64 @@ __global__ void collisionKernel( D2Q9 f, uint nx, uint ny, float omega, float* v
     f.f0n[ nodeIdx0p ] = g0p;
 
     f.fnn[ nodeIdxpp ] = gpp;
+}
+
+__global__ void postProcessingKernel( D2Q9 f, uint nx, uint ny, float* vertices, char type )
+{
+    uint xIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    uint yIdx = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if( xIdx >= nx - 1 || yIdx >= ny - 1 ) return;
+    
+    uint nodeIdx00 = ( xIdx     ) + ( yIdx     ) * nx;
+
+    uint nodeIdxp0 = ( xIdx + 1 ) + ( yIdx     ) * nx;
+    uint nodeIdxpp = ( xIdx + 1 ) + ( yIdx + 1 ) * nx;
+    uint nodeIdx0p = ( xIdx     ) + ( yIdx + 1 ) * nx;
+
+    //////////////////////////////////////////////////////////////////////////
+
+    char  geo = f.geo[ nodeIdx00 ];
+
+    if( geo == 1 ){
+        vertices[ 5 * nodeIdx00 + 2 ] = 0.0f;
+        vertices[ 5 * nodeIdx00 + 4 ] = 0.0f;
+        return;
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+
+    float g00 = f.f00[ nodeIdx00 ];
+    float g0p = f.f0p[ nodeIdx00 ];
+    float gpp = f.fpp[ nodeIdx00 ];
+    float gp0 = f.fp0[ nodeIdx00 ];
+
+    float gn0 = f.fn0[ nodeIdxp0 ];
+    float gnp = f.fnp[ nodeIdxp0 ];
+
+    float gpn = f.fpn[ nodeIdx0p ];
+    float g0n = f.f0n[ nodeIdx0p ];
+
+    float gnn = f.fnn[ nodeIdxpp ];
+
+    //////////////////////////////////////////////////////////////////////////
+
+    float dRho = ( ( ( gnp + gpn ) + ( gnn + gpp ) ) + ( ( g0p + g0n ) + ( gp0 + gn0 ) ) ) + g00;
+
+    float U   = ( ( ( - gnp + gpn ) + ( - gnn + gpp ) ) + (                 ( gp0 - gn0 ) ) ) / ( 1.0f + dRho );
+    float V   = ( ( (   gnp - gpn ) + ( - gnn + gpp ) ) + ( ( g0p - g0n )                 ) ) / ( 1.0f + dRho );
 
     //////////////////////////////////////////////////////////////////////////
     
-    vertices[ 5 * nodeIdx00 + 2 ] =        sqrt( U*U + V*V ) / 0.05f;
-    vertices[ 5 * nodeIdx00 + 4 ] = 1.0f - sqrt( U*U + V*V ) / 0.05f;
+    if( type == 'p' ){
+        vertices[ 5 * nodeIdx00 + 2 ] =        ( dRho/3.0f ) / 0.0001f;
+        vertices[ 5 * nodeIdx00 + 4 ] = 1.0f - ( dRho/3.0f ) / 0.0001f;
+    }
+    else{
+        vertices[ 5 * nodeIdx00 + 2 ] =        sqrt( U*U + V*V ) / 0.02f;
+        vertices[ 5 * nodeIdx00 + 4 ] = 1.0f - sqrt( U*U + V*V ) / 0.02f;
+    }
+
 }
 
 __global__ void setGeoKernel( D2Q9 f, uint nx, uint ny, uint x, uint y, char geo )
@@ -242,6 +289,25 @@ void lbmSolver::collision()
 
     //////////////////////////////////////////////////////////////////////////
 
+    collisionKernel<<<blocks, threads>>>( this->f, this->nx, this->ny, 1.99f );
+    getLastCudaError("collisionKernel failed.");
+
+    //////////////////////////////////////////////////////////////////////////
+
+    swap( &f.f0n, &f.f0p );
+    swap( &f.fnn, &f.fpp );
+    swap( &f.fp0, &f.fn0 );
+    swap( &f.fpn, &f.fnp );
+}
+
+void lbmSolver::postProcessing( char type )
+{
+    dim3 threads( THREADS_PER_BLOCK, THREADS_PER_BLOCK );
+    dim3 blocks ( ( this->nx +  THREADS_PER_BLOCK - 1 ) / THREADS_PER_BLOCK,
+                  ( this->ny +  THREADS_PER_BLOCK - 1 ) / THREADS_PER_BLOCK );
+
+    //////////////////////////////////////////////////////////////////////////
+
     cudaGraphicsMapResources(1, &this->glVertexBufferResource, 0);
     getLastCudaError("cudaGraphicsMapResources failed");
 
@@ -250,18 +316,13 @@ void lbmSolver::collision()
     cudaGraphicsResourceGetMappedPointer((void **)&verticesDev, &num_bytes, this->glVertexBufferResource);
     getLastCudaError("cudaGraphicsResourceGetMappedPointer failed");
 
-    collisionKernel<<<blocks, threads>>>( this->f, this->nx, this->ny, 1.99f, verticesDev );
+    postProcessingKernel<<<blocks, threads>>>( this->f, this->nx, this->ny, verticesDev, type );
     getLastCudaError("colorKernel failed.");
 
     cudaGraphicsUnmapResources(1, &this->glVertexBufferResource, 0);
     getLastCudaError("cudaGraphicsUnmapResources failed");
 
     //////////////////////////////////////////////////////////////////////////
-
-    swap( &f.f0n, &f.f0p );
-    swap( &f.fnn, &f.fpp );
-    swap( &f.fp0, &f.fn0 );
-    swap( &f.fpn, &f.fnp );
 }
 
 void lbmSolver::swap( float** lhs, float** rhs )

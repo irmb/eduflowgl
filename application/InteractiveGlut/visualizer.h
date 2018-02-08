@@ -32,6 +32,8 @@ private:
     static uint xIdxLast;
     static uint yIdxLast;
 
+    static char postProcessingType;
+
     Visualizer();
 
 public:
@@ -54,6 +56,8 @@ public:
     static void click(int button, int updown, int x, int y);
 
     static void motion(int x, int y);
+
+    static void keyboard(unsigned char key, int x, int y);
 
     // get/set
     static uint getVertexBufferID();
