@@ -197,11 +197,8 @@ void Visualizer::click(int button, int updown, int x, int y)
 
     std::cout << "Clicked at ( " << x << ", " << y << " )" << std::endl;
 
-    uint xIdx = float(nx) * float(     x) / float( nx*pxPerVertex ) ;
-    uint yIdx = float(ny) * float(ny - y) / float( ny*pxPerVertex ) ;
-
-    xIdx -= 8* float(     x) / float( nx*pxPerVertex ) ;
-    yIdx -= 8* float(ny - y) / float( ny*pxPerVertex ) ;
+    int xIdx = ( float(nx) - 8.0f/pxPerVertex ) * float(                  x ) / float( nx*pxPerVertex ) ;
+    int yIdx = ( float(ny) - 8.0f/pxPerVertex ) * float( ny*pxPerVertex - y ) / float( ny*pxPerVertex ) ;
 
     if(clicked) solver->setGeo( xIdx, yIdx, delelteGeo?0:1 );
 
@@ -213,18 +210,17 @@ void Visualizer::motion(int x, int y)
 {
     //std::cout << "Motioned at ( " << x << ", " << y << " )" << std::endl;
 
-    int xIdx = float(nx) * float(     x) / float( nx*pxPerVertex ) ;
-    int yIdx = float(ny) * float(ny - y) / float( ny*pxPerVertex ) ;
-
-    xIdx -= 8* float(     x) / float( nx*pxPerVertex ) ;
-    yIdx -= 8* float(ny - y) / float( ny*pxPerVertex ) ;
-
+    int xIdx = ( float(nx) - 8.0f/pxPerVertex ) * float(                  x ) / float( nx*pxPerVertex ) ;
+    int yIdx = ( float(ny) - 8.0f/pxPerVertex ) * float( ny*pxPerVertex - y ) / float( ny*pxPerVertex ) ;
+    
     std::cout << "Motioned at ( " << xIdx << ", " << yIdx << " )" << std::endl;
 
-    if( xIdx <  0      ) xIdx = 0;
-    if( yIdx <  0      ) yIdx = 0;
-    if( xIdx >= nx - 2 ) xIdx = nx - 2;
-    if( yIdx >= nx - 2 ) yIdx = nx - 2;
+    if( xIdx <  0 || xIdx > 1000000 ) xIdx = 0;
+    if( yIdx <  0 || yIdx > 1000000 ) yIdx = 0;
+    if( xIdx >= nx - 2 )              xIdx = nx - 2;
+    if( yIdx >= ny - 2 )              yIdx = ny - 2;
+
+    std::cout << "Motioned at ( " << xIdx << ", " << yIdx << " )" << std::endl;
 
     int dxIdx = xIdx - xIdxLast;
     int dyIdx = yIdx - yIdxLast;
