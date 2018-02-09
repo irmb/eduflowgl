@@ -52,7 +52,7 @@ void Visualizer::initialize(int argc, char *argv[], uint nx, uint ny, uint pxPer
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
     glutInitWindowSize( pxPerVertex*nx + 16, pxPerVertex*ny + 16 );
-    glutInitWindowPosition(300, 200);
+    glutInitWindowPosition(100, 100);
     glutCreateWindow("iRMB!");
     glutDisplayFunc(Visualizer::displayCall);
     glutMouseFunc(Visualizer::click);
@@ -203,6 +203,8 @@ void Visualizer::click(int button, int updown, int x, int y)
     xIdx -= 8* float(     x) / float( nx*pxPerVertex ) ;
     yIdx -= 8* float(ny - y) / float( ny*pxPerVertex ) ;
 
+    if(clicked) solver->setGeo( xIdx, yIdx, delelteGeo?0:1 );
+
     xIdxLast = xIdx;
     yIdxLast = yIdx;
 }
@@ -211,13 +213,18 @@ void Visualizer::motion(int x, int y)
 {
     //std::cout << "Motioned at ( " << x << ", " << y << " )" << std::endl;
 
-    uint xIdx = float(nx) * float(     x) / float( nx*pxPerVertex ) ;
-    uint yIdx = float(ny) * float(ny - y) / float( ny*pxPerVertex ) ;
+    int xIdx = float(nx) * float(     x) / float( nx*pxPerVertex ) ;
+    int yIdx = float(ny) * float(ny - y) / float( ny*pxPerVertex ) ;
 
     xIdx -= 8* float(     x) / float( nx*pxPerVertex ) ;
     yIdx -= 8* float(ny - y) / float( ny*pxPerVertex ) ;
 
     std::cout << "Motioned at ( " << xIdx << ", " << yIdx << " )" << std::endl;
+
+    if( xIdx <  0      ) xIdx = 0;
+    if( yIdx <  0      ) yIdx = 0;
+    if( xIdx >= nx - 2 ) xIdx = nx - 2;
+    if( yIdx >= nx - 2 ) yIdx = nx - 2;
 
     int dxIdx = xIdx - xIdxLast;
     int dyIdx = yIdx - yIdxLast;

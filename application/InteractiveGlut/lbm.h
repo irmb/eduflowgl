@@ -81,19 +81,23 @@ public:
 
     void connectVertexBuffer( uint vertexBufferID );
 
+    //////////////////////////////////////////////////////////////////////////
+
     void initializeDistributions();
 
     void collision();
 
     void postProcessing( char type );
 
-    void scaleColorMap();
-
     void computeMacroscopicQuantities();
 
-    void swap( floatVecPtr& lhs, floatVecPtr& rhs );
+    void scaleColorMap();
 
     void setGeo( uint xIdx, uint yIdx, char geo );
+
+    //////////////////////////////////////////////////////////////////////////
+
+    void swap( floatVecPtr& lhs, floatVecPtr& rhs );
 
     uint c2i( uint xIdx, uint yIdx );
 

@@ -22,7 +22,7 @@ const uint timeStepsPerFrame = 50;
 const float U = 0.025f;
 const float V = 0.000f;
 
-const float omega = 1.9f;
+const float omega = 1.99f;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -46,7 +46,14 @@ int main(int argc, char *argv[])
 
     //////////////////////////////////////////////////////////////////////////
 
-    solver->setGeo( 159,99, 1 );
+    for( int x = -250; x <= 250; x++ ){
+        for( int y = -250; y <= 250; y++ ){
+            if( sqrt( x * x + y * y ) > 250 ) continue;
+            solver->setGeo(NY/2 + x, NY/2 + y,1);
+        }
+    }
+
+    //////////////////////////////////////////////////////////////////////////
 
     Visualizer::run();
 
