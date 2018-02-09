@@ -64,9 +64,19 @@ private:
 
     cudaGraphicsResource* glVertexBufferResource; // handles OpenGL-CUDA exchange
 
+    float minVelocity;
+    float maxVelocity;
+
+    float minPressure;
+    float maxPressure;
+
+    float omega;
+    float U;
+    float V;
+
 public:
 
-    lbmSolver( uint nx, uint ny );
+    lbmSolver( uint nx, uint ny, float omega, float U, float V );
     ~lbmSolver();
 
     void connectVertexBuffer( uint vertexBufferID );
@@ -76,6 +86,10 @@ public:
     void collision();
 
     void postProcessing( char type );
+
+    void scaleColorMap();
+
+    void computeMacroscopicQuantities();
 
     void swap( floatVecPtr& lhs, floatVecPtr& rhs );
 

@@ -164,7 +164,7 @@ void Visualizer::displayCall()
     for( int i = 0; i < timeStepsPerVisualisation; i++ )
         solver->collision();
 
-    std::cout << ulint(nx) *ulint(ny) * ulint(timeStepsPerVisualisation) * 1000.0 / stopWatch->getElapsedMilliSeconds() << std::endl;
+    //std::cout << ulint(nx) *ulint(ny) * ulint(timeStepsPerVisualisation) * 1000.0 / stopWatch->getElapsedMilliSeconds() << std::endl;
     stopWatch->reset();
 
     //////////////////////////////////////////////////////////////////////////
@@ -240,6 +240,8 @@ void Visualizer::motion(int x, int y)
 
     xIdxLast = xIdx;
     yIdxLast = yIdx;
+
+    Visualizer::solver->scaleColorMap();
 }
 
 void Visualizer::keyboard(unsigned char key, int x, int y)
@@ -247,18 +249,25 @@ void Visualizer::keyboard(unsigned char key, int x, int y)
     switch (key)
     {
         case 'v':
-            std::cout << "Post Process Velocity" << std::endl;
+            std::cout << "Show Velocity" << std::endl;
             postProcessingType = 'v';
+            solver->scaleColorMap();
             break;
 
         case 'p':
-            std::cout << "Post Process Pressure" << std::endl;
+            std::cout << "Show Pressure" << std::endl;
             postProcessingType = 'p';
+            solver->scaleColorMap();
             break;
 
         case 'r':
             std::cout << "Initialize Distributions" << std::endl;
             solver->initializeDistributions();
+            break;
+
+        case 's':
+            std::cout << "Initialize Distributions" << std::endl;
+            solver->scaleColorMap();
             break;
 
         default:
