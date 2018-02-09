@@ -27,24 +27,31 @@ uint Visualizer::yIdxLast = 0;
 
 char Visualizer::postProcessingType = 'v';
 
+uint Visualizer::timeStepsPerFrame = 100;
+
 StopWatchPtr Visualizer::stopWatch = nullptr;
 
+double Visualizer::nups = 0.0; 
+double Visualizer::fps  = 0.0; 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Visualizer::initialize(int argc, char *argv[], uint nx, uint ny, uint pxPerVertex, lbmSolverPtr solver)
+void Visualizer::initialize(int argc, char *argv[], uint nx, uint ny, uint pxPerVertex, uint timeStepsPerFrame, lbmSolverPtr solver)
 {
     Visualizer::nx          = nx;
     Visualizer::ny          = ny;
     Visualizer::pxPerVertex = pxPerVertex;
     Visualizer::solver      = solver;
     
+    Visualizer::timeStepsPerFrame = timeStepsPerFrame;
+
     Visualizer::stopWatch   = std::make_shared<StopWatch>();
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-    glutInitWindowSize(pxPerVertex*nx+16, pxPerVertex*ny+16);
+    glutInitWindowSize( pxPerVertex*nx + 16, pxPerVertex*ny + 16 );
     glutInitWindowPosition(300, 200);
     glutCreateWindow("iRMB!");
     glutDisplayFunc(Visualizer::displayCall);
@@ -53,6 +60,9 @@ void Visualizer::initialize(int argc, char *argv[], uint nx, uint ny, uint pxPer
     glutKeyboardFunc(Visualizer::keyboard);
 
     glewInit();
+
+    std::cout << glutGet(GLUT_WINDOW_WIDTH)  << std::endl;
+    std::cout << glutGet(GLUT_WINDOW_HEIGHT) << std::endl;
 }
 
 void Visualizer::installShaders()
@@ -109,8 +119,8 @@ void Visualizer::generateVertices()
     for( uint yIdx = 0; yIdx < ny; yIdx++ ){
         for( uint xIdx = 0; xIdx < nx; xIdx++ ){
 
-            GLfloat x = -1.0f + 2.0f/float(nx-1) * float(xIdx);
-            GLfloat y = -1.0f + 2.0f/float(ny-1) * float(yIdx);
+            GLfloat x = -1.0f + (2.0f/float(nx-1)) * float(xIdx);
+            GLfloat y = -1.0f + (2.0f/float(ny-1)) * float(yIdx);
 
             vertices.push_back( x );
             vertices.push_back( y );
@@ -158,13 +168,11 @@ void Visualizer::run()
 
 void Visualizer::displayCall()
 {
-
-    uint timeStepsPerVisualisation = 100;
-
-    for( int i = 0; i < timeStepsPerVisualisation; i++ )
+    for( int i = 0; i < timeStepsPerFrame; i++ )
         solver->collision();
 
-    //std::cout << ulint(nx) *ulint(ny) * ulint(timeStepsPerVisualisation) * 1000.0 / stopWatch->getElapsedMilliSeconds() << std::endl;
+    nups = ulint(nx) *ulint(ny) * ulint(timeStepsPerFrame) * 1000.0 / stopWatch->getElapsedMilliSeconds();
+    fps  = 1000.0 / stopWatch->getElapsedMilliSeconds();
     stopWatch->reset();
 
     //////////////////////////////////////////////////////////////////////////
@@ -189,10 +197,11 @@ void Visualizer::click(int button, int updown, int x, int y)
 
     std::cout << "Clicked at ( " << x << ", " << y << " )" << std::endl;
 
-    uint xIdx =      nx * ( float(x) / float( nx*pxPerVertex + 16 ) ) ;
-    uint yIdx = ny - ny * ( float(y) / float( ny*pxPerVertex + 16 ) ) ;
+    uint xIdx = float(nx) * float(     x) / float( nx*pxPerVertex ) ;
+    uint yIdx = float(ny) * float(ny - y) / float( ny*pxPerVertex ) ;
 
-    yIdx -= 3;
+    xIdx -= 8* float(     x) / float( nx*pxPerVertex ) ;
+    yIdx -= 8* float(ny - y) / float( ny*pxPerVertex ) ;
 
     xIdxLast = xIdx;
     yIdxLast = yIdx;
@@ -202,10 +211,11 @@ void Visualizer::motion(int x, int y)
 {
     //std::cout << "Motioned at ( " << x << ", " << y << " )" << std::endl;
 
-    uint xIdx =      nx * ( float(x) / float( nx*pxPerVertex + 16 ) ) ;
-    uint yIdx = ny - ny * ( float(y) / float( ny*pxPerVertex + 16 ) ) ;
+    uint xIdx = float(nx) * float(     x) / float( nx*pxPerVertex ) ;
+    uint yIdx = float(ny) * float(ny - y) / float( ny*pxPerVertex ) ;
 
-    yIdx -= 3;
+    xIdx -= 8* float(     x) / float( nx*pxPerVertex ) ;
+    yIdx -= 8* float(ny - y) / float( ny*pxPerVertex ) ;
 
     std::cout << "Motioned at ( " << xIdx << ", " << yIdx << " )" << std::endl;
 
@@ -268,6 +278,12 @@ void Visualizer::keyboard(unsigned char key, int x, int y)
         case 's':
             std::cout << "Initialize Distributions" << std::endl;
             solver->scaleColorMap();
+            break;
+
+        case 'n':
+            std::cout << "Performance: " << std::endl;
+            std::cout << "    " << nups << " NUPS" << std::endl;
+            std::cout << "    " << fps  << " FPS" << std::endl;
             break;
 
         default:

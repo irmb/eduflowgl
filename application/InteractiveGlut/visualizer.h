@@ -37,7 +37,12 @@ private:
 
     static char postProcessingType;
 
+    static uint timeStepsPerFrame;
+
     static StopWatchPtr stopWatch;
+
+    static double nups;
+    static double fps;
 
     Visualizer();
 
@@ -45,7 +50,8 @@ public:
 
     static void initialize( int argc, char *argv[], 
                             uint nx, uint ny, 
-                            uint pxPerVertex, lbmSolverPtr solver );
+                            uint pxPerVertex, uint timeStepsPerFrame,
+                            lbmSolverPtr solver );
 
     static void installShaders();
 

@@ -12,15 +12,17 @@ typedef unsigned int uint;
 
 //////////////////////////////////////////////////////////////////////////
 
-const uint NX = 5*160;
-const uint NY = 5*100;
+const uint NX = 1600;
+const uint NY = 1000;
 
-const uint PXPP = 1;
+const uint pxPerNode = 1;
+
+const uint timeStepsPerFrame = 50;
 
 const float U = 0.025f;
-const float V = 0.00f;
+const float V = 0.000f;
 
-const float omega = 1.99f;
+const float omega = 1.9f;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -32,7 +34,7 @@ int main(int argc, char *argv[])
 
     //////////////////////////////////////////////////////////////////////////
 
-    Visualizer::initialize( argc, argv, NX, NY, PXPP, solver );
+    Visualizer::initialize( argc, argv, NX, NY, pxPerNode, timeStepsPerFrame, solver );
 
     Visualizer::installShaders();
 
@@ -43,6 +45,8 @@ int main(int argc, char *argv[])
     solver->connectVertexBuffer( Visualizer::getVertexBufferID() );
 
     //////////////////////////////////////////////////////////////////////////
+
+    solver->setGeo( 159,99, 1 );
 
     Visualizer::run();
 
