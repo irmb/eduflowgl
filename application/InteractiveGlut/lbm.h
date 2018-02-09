@@ -30,6 +30,9 @@ struct D2Q9
     floatVecPtr f0n;
 
     charVecPtr  geo;
+
+    floatVecPtr pressure;
+    floatVecPtr velocity;
 };
 
 struct D2Q9Ptr
@@ -45,6 +48,9 @@ struct D2Q9Ptr
     floatPtr f0n;
 
     charPtr  geo;
+
+    floatPtr pressure;
+    floatPtr velocity;
 };
 
 class lbmSolver

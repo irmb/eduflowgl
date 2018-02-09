@@ -150,7 +150,7 @@ __global__ void collisionKernel( D2Q9Ptr f, uint nx, uint ny, float omega )
     f.fnn[ nodeIdxpp ] = gpp;
 }
 
-__global__ void postProcessingKernel( D2Q9Ptr f, uint nx, uint ny, float* vertices, char type )
+__global__ void postProcessingMacroscopicQuantitiesKernel( D2Q9Ptr f, uint nx, uint ny )
 {
     uint xIdx = blockIdx.x * blockDim.x + threadIdx.x;
     uint yIdx = blockIdx.y * blockDim.y + threadIdx.y;
@@ -167,9 +167,10 @@ __global__ void postProcessingKernel( D2Q9Ptr f, uint nx, uint ny, float* vertic
 
     char  geo = f.geo[ nodeIdx00 ];
 
-    if( geo == 1 ){
-        vertices[ 5 * nodeIdx00 + 2 ] = 0.0f;
-        vertices[ 5 * nodeIdx00 + 4 ] = 0.0f;
+    if( geo != 0 ){
+        f.pressure[ nodeIdx00 ] = 0.0;
+        //f.velocity[ nodeIdx00 ] = 0.0;
+
         return;
     }
 
@@ -196,16 +197,41 @@ __global__ void postProcessingKernel( D2Q9Ptr f, uint nx, uint ny, float* vertic
     float V   = ( ( (   gnp - gpn ) + ( - gnn + gpp ) ) + ( ( g0p - g0n )                 ) ) / ( 1.0f + dRho );
 
     //////////////////////////////////////////////////////////////////////////
+
+    f.pressure[ nodeIdx00 ] = dRho;
+    f.velocity[ nodeIdx00 ] = sqrt( U * U + V * V );
+}
+
+__global__ void postProcessingSetColorKernel( D2Q9Ptr f, uint nx, uint ny, float* vertices, char type, float min, float max )
+{
+    uint xIdx = blockIdx.x * blockDim.x + threadIdx.x;
+    uint yIdx = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if( xIdx >= nx - 1 || yIdx >= ny - 1 ) return;
     
-    if( type == 'p' ){
-        vertices[ 5 * nodeIdx00 + 2 ] =        ( dRho/3.0f ) / 0.0001f;
-        vertices[ 5 * nodeIdx00 + 4 ] = 1.0f - ( dRho/3.0f ) / 0.0001f;
-    }
-    else{
-        vertices[ 5 * nodeIdx00 + 2 ] =        sqrt( U*U + V*V ) / 0.02f;
-        vertices[ 5 * nodeIdx00 + 4 ] = 1.0f - sqrt( U*U + V*V ) / 0.02f;
+    uint nodeIdx00 = ( xIdx     ) + ( yIdx     ) * nx;
+
+    //////////////////////////////////////////////////////////////////////////
+
+    char  geo = f.geo[ nodeIdx00 ];
+
+    if( geo == 1 ){
+        vertices[ 5 * nodeIdx00 + 2 ] = 0.0f;
+        vertices[ 5 * nodeIdx00 + 4 ] = 0.0f;
+        return;
     }
 
+    //////////////////////////////////////////////////////////////////////////
+    
+    float value;
+
+    if( type == 'p' ) value = f.pressure[ nodeIdx00 ];
+    else              value = f.velocity[ nodeIdx00 ];
+
+    value = ( value - min ) / ( max - min );
+
+    vertices[ 5 * nodeIdx00 + 2 ] =        value;
+    vertices[ 5 * nodeIdx00 + 4 ] = 1.0f - value;
 }
 
 __global__ void setGeoKernel( D2Q9Ptr f, uint nx, uint ny, uint x, uint y, char geo )
@@ -248,6 +274,9 @@ lbmSolver::lbmSolver(uint nx, uint ny)
     this->f.f0n = std::make_shared<floatVec>( nx * ny );
 
     this->f.geo = std::make_shared<charVec> ( nx * ny );
+
+    this->f.pressure = std::make_shared<floatVec>( nx * ny );
+    this->f.velocity = std::make_shared<floatVec>( nx * ny );
 }
 
 lbmSolver::~lbmSolver()
@@ -293,6 +322,27 @@ void lbmSolver::postProcessing( char type )
 
     //////////////////////////////////////////////////////////////////////////
 
+    postProcessingMacroscopicQuantitiesKernel<<<blocks, threads>>>( this->getDistPtr(), this->nx, this->ny );
+    getLastCudaError("postProcessingMacroscopicQuantitiesKernel failed.");
+
+    float min =  10.0f;
+    float max = -10.0f;
+
+    if( type == 'p' ){
+        min = thrust::reduce( this->f.pressure->begin(), this->f.pressure->end(), 0.0f, thrust::minimum<float>() );
+        max = thrust::reduce( this->f.pressure->begin(), this->f.pressure->end(), 0.0f, thrust::maximum<float>() );
+
+        std::cout << "Pressure = ( " << min << ", " << max << " )" << std::endl;
+    }
+    else{
+        min = thrust::reduce( this->f.velocity->begin(), this->f.velocity->end(), 0.0f, thrust::minimum<float>() );
+        max = thrust::reduce( this->f.velocity->begin(), this->f.velocity->end(), 0.0f, thrust::maximum<float>() );
+
+        std::cout << "Velocity = ( " << min << ", " << max << " )" << std::endl;
+    }
+
+    //////////////////////////////////////////////////////////////////////////
+
     cudaGraphicsMapResources(1, &this->glVertexBufferResource, 0);
     getLastCudaError("cudaGraphicsMapResources failed");
 
@@ -301,8 +351,8 @@ void lbmSolver::postProcessing( char type )
     cudaGraphicsResourceGetMappedPointer((void **)&verticesDev, &num_bytes, this->glVertexBufferResource);
     getLastCudaError("cudaGraphicsResourceGetMappedPointer failed");
 
-    postProcessingKernel<<<blocks, threads>>>( this->getDistPtr(), this->nx, this->ny, verticesDev, type );
-    getLastCudaError("colorKernel failed.");
+    postProcessingSetColorKernel<<<blocks, threads>>>( this->getDistPtr(), this->nx, this->ny, verticesDev, type, min, max );
+    getLastCudaError("postProcessingSetColorKernel failed.");
 
     cudaGraphicsUnmapResources(1, &this->glVertexBufferResource, 0);
     getLastCudaError("cudaGraphicsUnmapResources failed");
@@ -366,6 +416,9 @@ D2Q9Ptr lbmSolver::getDistPtr()
     distPtr.f0p = this->f.f0p->data();
     distPtr.f0n = this->f.f0n->data();
     distPtr.geo = this->f.geo->data();
+
+    distPtr.velocity = this->f.velocity->data();
+    distPtr.pressure = this->f.pressure->data();
 
     return distPtr;
 }
