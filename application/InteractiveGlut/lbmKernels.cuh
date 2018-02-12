@@ -20,6 +20,180 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+__device__ inline void setEquilibrium( D2Q9Distribution& g,
+                                       float U,
+                                       float V )
+{
+    g.f00 = (   (-2       + 3*(U*U) ) * (-2       + 3*(V*V) ) ) / 9.0  - 4.0f/9.0f  ;
+    g.fp0 = ( - ( 1 + 3*U + 3*(U*U) ) * (-2       + 3*(V*V) ) ) / 18.0 - 1.0f/9.0f  ;
+    g.fn0 = ( - ( 1 - 3*U + 3*(U*U) ) * (-2       + 3*(V*V) ) ) / 18.0 - 1.0f/9.0f  ;
+    g.f0p = ( - (-2       + 3*(U*U) ) * ( 1 + 3*V + 3*(V*V) ) ) / 18.0 - 1.0f/9.0f  ;
+    g.f0n = ( - (-2       + 3*(U*U) ) * ( 1 - 3*V + 3*(V*V) ) ) / 18.0 - 1.0f/9.0f  ;
+    g.fpp = (   ( 1 + 3*U + 3*(U*U) ) * ( 1 + 3*V + 3*(V*V) ) ) / 36.0 - 1.0f/36.0f ;
+    g.fpn = (   ( 1 + 3*U + 3*(U*U) ) * ( 1 - 3*V + 3*(V*V) ) ) / 36.0 - 1.0f/36.0f ;
+    g.fnn = (   ( 1 - 3*U + 3*(U*U) ) * ( 1 - 3*V + 3*(V*V) ) ) / 36.0 - 1.0f/36.0f ;
+    g.fnp = (   ( 1 - 3*U + 3*(U*U) ) * ( 1 + 3*V + 3*(V*V) ) ) / 36.0 - 1.0f/36.0f ;
+}
+
+__device__ inline void forwardCentralMomentTransform( D2Q9Distribution& g,
+                                                      float U,
+                                                      float V )
+{
+    float n1,n2;
+    n1=(g.fnp+g.fnn)+g.fn0;
+    n2=(g.fnp-g.fnn)-V*(n1+1.0f/6.0f);
+    g.fnp=(g.fnp+g.fnn)-2.0f*V*(g.fnp-g.fnn)+V*V*(n1+1.0f/6.0f);
+    g.fnn=n1;
+    g.fn0=n2;
+
+    n1=(g.f0p+g.f0n)+g.f00;
+    n2=(g.f0p-g.f0n)-V*(n1+2.0f/3.0f);
+    g.f0p=(g.f0p+g.f0n)-2.0f*V*(g.f0p-g.f0n)+V*V*(n1+2.0f/3.0f);
+    g.f0n=n1;
+    g.f00=n2;
+
+    n1=(g.fpp+g.fpn)+g.fp0;
+    n2=(g.fpp-g.fpn)-V*(n1+1.0f/6.0f);
+    g.fpp=(g.fpp+g.fpn)-2.0f*V*(g.fpp-g.fpn)+V*V*(n1+1.0f/6.0f);
+    g.fpn=n1;
+    g.fp0=n2;
+
+    n1 =         (g.fpn+g.fnn) + g.f0n;
+    n2 =         (g.fpn-g.fnn) -   U*(n1+1.0f);
+    g.fpn=         (g.fpn+g.fnn)   
+         -2.0f*U*(g.fpn-g.fnn) + U*U*(n1+1.0f);
+    g.fnn= n1;
+    g.f0n= n2;
+
+    n1 =         (g.fp0+g.fn0) + g.f00;
+    n2 =         (g.fp0-g.fn0) -   U*(n1);
+    g.fp0=       (g.fp0+g.fn0)   
+         -2.0f*U*(g.fp0-g.fn0) + U*U*(n1);
+    g.fn0= n1;
+    g.f00= n2;
+
+    n1 =         (g.fpp+g.fnp) + g.f0p;
+    n2 =         (g.fpp-g.fnp) -   U*(n1+1.0f/3.0);
+    g.fpp=       (g.fpp+g.fnp)   
+         -2.0f*U*(g.fpp-g.fnp) + U*U*(n1+1.0f/3.0);
+    g.fnp= n1;
+    g.f0p= n2;
+}
+
+__device__ inline void backwardCentralMomentTransform( D2Q9Distribution& g,
+                                                      float U,
+                                                      float V )
+{
+    float n1, n2;
+
+    n1    =            g.fnn    *(1.0f-U*U) - 2.0f*U*g.f0n               - g.fpn -  U*U*1.0f;
+    n2    = 0.5f * ( ( g.fnn + 1.0f )*(U*U-U) +      g.f0n*(2.0f*U-1.0f) + g.fpn );
+    g.fpn = 0.5f * ( ( g.fnn + 1.0f )*(U*U+U) +      g.f0n*(2.0f*U+1.0f) + g.fpn );
+    g.f0n = n1;
+    g.fnn = n2;
+
+    n1    =            g.fn0    *(1.0f-U*U) - 2.0f*U*g.f00               - g.fp0;
+    n2    = 0.5f * ( ( g.fn0        )*(U*U-U) +      g.f00*(2.0f*U-1.0f) + g.fp0 );
+    g.fp0 = 0.5f * ( ( g.fn0        )*(U*U+U) +      g.f00*(2.0f*U+1.0f) + g.fp0 );
+    g.f00 = n1;
+    g.fn0 = n2;
+
+    n1    =            g.fnp        *(1.0f-U*U) - 2.0f*U*g.f0p               - g.fpp -  U*U*1.0f/3.0f;
+    n2    = 0.5f * ( ( g.fnp + 1.0f/3.0 )*(U*U-U) +      g.f0p*(2.0f*U-1.0f) + g.fpp );
+    g.fpp = 0.5f * ( ( g.fnp + 1.0f/3.0 )*(U*U+U) +      g.f0p*(2.0f*U+1.0f) + g.fpp );
+    g.f0p = n1;
+    g.fnp = n2;
+
+    n1    =            g.fnn         *(1.0f-V*V) - 2.0f*V*g.fn0               - g.fnp -  V*V*1.0f/6.0f;
+    n2    = 0.5f * ( ( g.fnn + 1.0f/6.0f )*(V*V-V) +      g.fn0*(2.0f*V-1.0f) + g.fnp );
+    g.fnp = 0.5f * ( ( g.fnn + 1.0f/6.0f )*(V*V+V) +      g.fn0*(2.0f*V+1.0f) + g.fnp );
+    g.fn0 = n1;
+    g.fnn = n2;
+
+    n1    =            g.f0n         *(1.0f-V*V) - 2.0f*V*g.f00               - g.f0p -  V*V*2.0f/3.0f;
+    n2    = 0.5f * ( ( g.f0n + 2.0f/3.0f )*(V*V-V) +      g.f00*(2.0f*V-1.0f) + g.f0p );
+    g.f0p = 0.5f * ( ( g.f0n + 2.0f/3.0f )*(V*V+V) +      g.f00*(2.0f*V+1.0f) + g.f0p );
+    g.f00 = n1;
+    g.f0n = n2;
+
+    n1    =            g.fpn         *(1.0f-V*V) - 2.0f*V*g.fp0               - g.fpp -  V*V*1.0f/6.0f;
+    n2    = 0.5f * ( ( g.fpn + 1.0f/6.0f )*(V*V-V) +      g.fp0*(2.0f*V-1.0f) + g.fpp );
+    g.fpp = 0.5f * ( ( g.fpn + 1.0f/6.0f )*(V*V+V) +      g.fp0*(2.0f*V+1.0f) + g.fpp );
+    g.fp0 = n1;
+    g.fpn = n2;
+}
+
+__device__ inline void collisonCentralMoments( D2Q9Distribution& g,
+                                               float U,
+                                               float V,
+                                               float omega )
+{
+    forwardCentralMomentTransform( g, U, V );
+
+    //////////////////////////////////////////////////////////////////////////
+
+    float dxU=-omega*0.5f*(2.0f*g.fpn-g.fnp)-0.5f*(g.fpn+g.fnp-2.0f/3.0f*g.fnn);
+    float dyV=-omega*0.5f*(2.0f*g.fnp-g.fpn)-0.5f*(g.fpn+g.fnp-2.0f/3.0f*g.fnn);
+
+    float mXXMYY=g.fpn-g.fnp;
+    float mXXPYY=2.0f/3.0f*g.fnn-3.0f/2.0f*(U*U*dxU+V*V*dyV);//g.fpn+g.fnp;
+
+    mXXMYY=(1.0f-omega)*mXXMYY-3.0f*(1.0f-omega*0.5f)*(U*U*dxU+V*V*dyV);
+
+    g.fpn=( mXXMYY+mXXPYY)*0.5f;
+    g.fnp=(-mXXMYY+mXXPYY)*0.5f;
+
+    //g.fpn = 1.0f/3.0f * g.fnn * omega + ( 1.0f - omega ) * g.fpn;
+
+    //g.fnp = 1.0f/3.0f * g.fnn * omega + ( 1.0f - omega ) * g.fnp;
+
+    g.f00 =                           ( 1.0f - omega ) * g.f00;
+
+    g.fpp = 1.0f/9.0f * g.fnn;
+
+    /////////////////////////////////////////////////////////////////////////
+    float omega3 = 8.0f * ( omega - 2.0f ) / ( omega - 8.0f );
+    omega3 = omega3 +(1.0f-omega3)*fabs(g.f0p)/(fabs(g.f0p)+0.0001f);
+
+    g.f0p *= ( 1.0f - omega3 );
+
+    omega3 = 8.0f * ( omega - 2.0f ) / ( omega - 8.0f );
+    omega3 = omega3 +(1.0f-omega3)*fabs(g.fp0)/(fabs(g.fp0)+0.0001f);
+    g.fp0 *= ( 1.0f - omega3 );
+    /////////////////////////////////////////////////////////////////////
+
+    //g.f0p = 0.0f;
+
+    //g.fp0 = 0.0f;
+
+    //////////////////////////////////////////////////////////////////////////
+
+    backwardCentralMomentTransform( g, U, V );
+
+    //////////////////////////////////////////////////////////////////////////
+}
+
+__device__ inline void collisionBGK( D2Q9Distribution& g,
+                                     float U,
+                                     float V,
+                                     float dRho,
+                                     float omega )
+{
+    g.f00 = g.f00 * ( 1.0f - omega ) + omega * (   ( (1.0f + dRho) * (-2       + 3*(U*U))*(-2       + 3*(V*V)))/9.  - 4.0f/9.0f  );
+    g.fp0 = g.fp0 * ( 1.0f - omega ) + omega * ( - ( (1.0f + dRho) * ( 1 + 3*U + 3*(U*U))*(-2       + 3*(V*V)))/18. - 1.0f/9.0f  );
+    g.fn0 = g.fn0 * ( 1.0f - omega ) + omega * ( - ( (1.0f + dRho) * ( 1 - 3*U + 3*(U*U))*(-2       + 3*(V*V)))/18. - 1.0f/9.0f  );
+    g.f0p = g.f0p * ( 1.0f - omega ) + omega * ( - ( (1.0f + dRho) * (-2       + 3*(U*U))*( 1 + 3*V + 3*(V*V)))/18. - 1.0f/9.0f  );
+    g.f0n = g.f0n * ( 1.0f - omega ) + omega * ( - ( (1.0f + dRho) * (-2       + 3*(U*U))*( 1 - 3*V + 3*(V*V)))/18. - 1.0f/9.0f  );
+    g.fpp = g.fpp * ( 1.0f - omega ) + omega * (   ( (1.0f + dRho) * ( 1 + 3*U + 3*(U*U))*( 1 + 3*V + 3*(V*V)))/36. - 1.0f/36.0f );
+    g.fpn = g.fpn * ( 1.0f - omega ) + omega * (   ( (1.0f + dRho) * ( 1 + 3*U + 3*(U*U))*( 1 - 3*V + 3*(V*V)))/36. - 1.0f/36.0f );
+    g.fnn = g.fnn * ( 1.0f - omega ) + omega * (   ( (1.0f + dRho) * ( 1 - 3*U + 3*(U*U))*( 1 - 3*V + 3*(V*V)))/36. - 1.0f/36.0f );
+    g.fnp = g.fnp * ( 1.0f - omega ) + omega * (   ( (1.0f + dRho) * ( 1 - 3*U + 3*(U*U))*( 1 + 3*V + 3*(V*V)))/36. - 1.0f/36.0f );
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 __global__ void initializeDistributionsKernel( D2Q9Ptr f, uint nx, uint ny, float U, float V )
 {
     uint xIdx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -29,15 +203,19 @@ __global__ void initializeDistributionsKernel( D2Q9Ptr f, uint nx, uint ny, floa
 
     uint nodeIdx = yIdx * nx + xIdx;
     
-    f.f00[ nodeIdx ] = (   (-2       + 3*(U*U))*(-2       + 3*(V*V)))/9.  - 4.0f/9.0f  ;
-    f.fp0[ nodeIdx ] = ( - ( 1 + 3*U + 3*(U*U))*(-2       + 3*(V*V)))/18. - 1.0f/9.0f  ;
-    f.fn0[ nodeIdx ] = ( - ( 1 - 3*U + 3*(U*U))*(-2       + 3*(V*V)))/18. - 1.0f/9.0f  ;
-    f.f0p[ nodeIdx ] = ( - (-2       + 3*(U*U))*( 1 + 3*V + 3*(V*V)))/18. - 1.0f/9.0f  ;
-    f.f0n[ nodeIdx ] = ( - (-2       + 3*(U*U))*( 1 - 3*V + 3*(V*V)))/18. - 1.0f/9.0f  ;
-    f.fpp[ nodeIdx ] = (   ( 1 + 3*U + 3*(U*U))*( 1 + 3*V + 3*(V*V)))/36. - 1.0f/36.0f ;
-    f.fpn[ nodeIdx ] = (   ( 1 + 3*U + 3*(U*U))*( 1 - 3*V + 3*(V*V)))/36. - 1.0f/36.0f ;
-    f.fnn[ nodeIdx ] = (   ( 1 - 3*U + 3*(U*U))*( 1 - 3*V + 3*(V*V)))/36. - 1.0f/36.0f ;
-    f.fnp[ nodeIdx ] = (   ( 1 - 3*U + 3*(U*U))*( 1 + 3*V + 3*(V*V)))/36. - 1.0f/36.0f ;
+    D2Q9Distribution g;
+
+    setEquilibrium(g, U, V);
+
+    f.f00[ nodeIdx ] = g.f00;
+    f.fp0[ nodeIdx ] = g.fp0;
+    f.fn0[ nodeIdx ] = g.fn0;
+    f.f0p[ nodeIdx ] = g.f0p;
+    f.f0n[ nodeIdx ] = g.f0n;
+    f.fpp[ nodeIdx ] = g.fpp;
+    f.fpn[ nodeIdx ] = g.fpn;
+    f.fnn[ nodeIdx ] = g.fnn;
+    f.fnp[ nodeIdx ] = g.fnp;
 
     //if      ( xIdx == nx - 1 || yIdx == ny - 1 ) f.geo[ nodeIdx ] = 1;
     //else if ( xIdx == 0      || xIdx == nx - 2 ) f.geo[ nodeIdx ] = 2;
@@ -47,143 +225,6 @@ __global__ void initializeDistributionsKernel( D2Q9Ptr f, uint nx, uint ny, floa
     if      ( xIdx == nx - 1 || yIdx == ny - 1 )                                     f.geo[ nodeIdx ] = 1;
     else if ( yIdx == 0      || xIdx == 0      || xIdx == nx - 2 || yIdx == ny - 2 ) f.geo[ nodeIdx ] = 2;
     else                                                                             f.geo[ nodeIdx ] = 0;
-}
-
-__device__ inline void collisonCascade( float& g00, 
-                                        float& gp0, 
-                                        float& gn0, 
-                                        float& g0p, 
-                                        float& g0n, 
-                                        float& gpp, 
-                                        float& gpn, 
-                                        float& gnn, 
-                                        float& gnp,
-                                        float U,
-                                        float V,
-                                        float omega )
-{
-    // parametrization Paper part I, Eq. 6 - 11
-    // in central moments: n -> 0, 0 -> 1, p -> 2
-
-    // forwards fast central moment transform
-
-    float n1,n2;
-    n1=(gnp+gnn)+gn0;
-    n2=(gnp-gnn)-V*(n1+1.0f/6.0f);
-    gnp=(gnp+gnn)-2.0f*V*(gnp-gnn)+V*V*(n1+1.0f/6.0f);
-    gnn=n1;
-    gn0=n2;
-
-    n1=(g0p+g0n)+g00;
-    n2=(g0p-g0n)-V*(n1+2.0f/3.0f);
-    g0p=(g0p+g0n)-2.0f*V*(g0p-g0n)+V*V*(n1+2.0f/3.0f);
-    g0n=n1;
-    g00=n2;
-
-    n1=(gpp+gpn)+gp0;
-    n2=(gpp-gpn)-V*(n1+1.0f/6.0f);
-    gpp=(gpp+gpn)-2.0f*V*(gpp-gpn)+V*V*(n1+1.0f/6.0f);
-    gpn=n1;
-    gp0=n2;
-
-    n1 =         (gpn+gnn) + g0n;
-    n2 =         (gpn-gnn) -   U*(n1+1.0f);
-    gpn=         (gpn+gnn)   
-         -2.0f*U*(gpn-gnn) + U*U*(n1+1.0f);
-    gnn= n1;
-    g0n= n2;
-
-    n1 =         (gp0+gn0) + g00;
-    n2 =         (gp0-gn0) -   U*(n1);
-    gp0=         (gp0+gn0)   
-         -2.0f*U*(gp0-gn0) + U*U*(n1);
-    gn0= n1;
-    g00= n2;
-
-    n1 =         (gpp+gnp) + g0p;
-    n2 =         (gpp-gnp) -   U*(n1+1.0f/3.0);
-    gpp=         (gpp+gnp)   
-         -2.0f*U*(gpp-gnp) + U*U*(n1+1.0f/3.0);
-    gnp= n1;
-    g0p= n2;
-
-    //////////////////////////////////////////////////////////////////////////
-
-    float dxU=-omega*0.5f*(2.0f*gpn-gnp)-0.5f*(gpn+gnp-2.0f/3.0f*gnn);
-    float dyV=-omega*0.5f*(2.0f*gnp-gpn)-0.5f*(gpn+gnp-2.0f/3.0f*gnn);
-
-    float mXXMYY=gpn-gnp;
-    float mXXPYY=2.0f/3.0f*gnn-3.0f/2.0f*(U*U*dxU+V*V*dyV);//gpn+gnp;
-
-    mXXMYY=(1.0f-omega)*mXXMYY-3.0f*(1.0f-omega*0.5f)*(U*U*dxU+V*V*dyV);
-
-    gpn=( mXXMYY+mXXPYY)*0.5f;
-    gnp=(-mXXMYY+mXXPYY)*0.5f;
-
-    //gpn = 1.0f/3.0f * gnn * omega + ( 1.0f - omega ) * gpn;
-
-    //gnp = 1.0f/3.0f * gnn * omega + ( 1.0f - omega ) * gnp;
-
-    g00 =                           ( 1.0f - omega ) * g00;
-
-    gpp = 1.0f/9.0f * gnn;
-
-    /////////////////////////////////////////////////////////////////////////
-    float omega3 = 8.0f * ( omega - 2.0f ) / ( omega - 8.0f );
-    omega3 = omega3 +(1.0f-omega3)*fabs(g0p)/(fabs(g0p)+0.0001f);
-
-    g0p *= ( 1.0f - omega3 );
-
-    omega3 = 8.0f * ( omega - 2.0f ) / ( omega - 8.0f );
-    omega3 = omega3 +(1.0f-omega3)*fabs(gp0)/(fabs(gp0)+0.0001f);
-    gp0 *= ( 1.0f - omega3 );
-    /////////////////////////////////////////////////////////////////////
-
-    //g0p = 0.0f;
-
-    //gp0 = 0.0f;
-
-    //////////////////////////////////////////////////////////////////////////
-
-    // backward fast central moment transform
-
-    n1  =            gnn    *(1.0f-U*U) - 2.0f*U*g0n               - gpn -  U*U*1.0f;
-    n2  = 0.5f * ( ( gnn + 1.0f )*(U*U-U) +      g0n*(2.0f*U-1.0f) + gpn );
-    gpn = 0.5f * ( ( gnn + 1.0f )*(U*U+U) +      g0n*(2.0f*U+1.0f) + gpn );
-    g0n = n1;
-    gnn = n2;
-
-    n1  =            gn0    *(1.0f-U*U) - 2.0f*U*g00               - gp0;
-    n2  = 0.5f * ( ( gn0        )*(U*U-U) +      g00*(2.0f*U-1.0f) + gp0 );
-    gp0 = 0.5f * ( ( gn0        )*(U*U+U) +      g00*(2.0f*U+1.0f) + gp0 );
-    g00 = n1;
-    gn0 = n2;
-
-    n1  =            gnp        *(1.0f-U*U) - 2.0f*U*g0p               - gpp -  U*U*1.0f/3.0f;
-    n2  = 0.5f * ( ( gnp + 1.0f/3.0 )*(U*U-U) +      g0p*(2.0f*U-1.0f) + gpp );
-    gpp = 0.5f * ( ( gnp + 1.0f/3.0 )*(U*U+U) +      g0p*(2.0f*U+1.0f) + gpp );
-    g0p = n1;
-    gnp = n2;
-
-    n1  =            gnn         *(1.0f-V*V) - 2.0f*V*gn0               - gnp -  V*V*1.0f/6.0f;
-    n2  = 0.5f * ( ( gnn + 1.0f/6.0f )*(V*V-V) +      gn0*(2.0f*V-1.0f) + gnp );
-    gnp = 0.5f * ( ( gnn + 1.0f/6.0f )*(V*V+V) +      gn0*(2.0f*V+1.0f) + gnp );
-    gn0 = n1;
-    gnn = n2;
-
-    n1  =            g0n         *(1.0f-V*V) - 2.0f*V*g00               - g0p -  V*V*2.0f/3.0f;
-    n2  = 0.5f * ( ( g0n + 2.0f/3.0f )*(V*V-V) +      g00*(2.0f*V-1.0f) + g0p );
-    g0p = 0.5f * ( ( g0n + 2.0f/3.0f )*(V*V+V) +      g00*(2.0f*V+1.0f) + g0p );
-    g00 = n1;
-    g0n = n2;
-
-    n1  =            gpn         *(1.0f-V*V) - 2.0f*V*gp0               - gpp -  V*V*1.0f/6.0f;
-    n2  = 0.5f * ( ( gpn + 1.0f/6.0f )*(V*V-V) +      gp0*(2.0f*V-1.0f) + gpp );
-    gpp = 0.5f * ( ( gpn + 1.0f/6.0f )*(V*V+V) +      gp0*(2.0f*V+1.0f) + gpp );
-    gp0 = n1;
-    gpn = n2;
-
-    //////////////////////////////////////////////////////////////////////////
 }
 
 __global__ void collisionKernel( D2Q9Ptr f, uint nx, uint ny, float omega, float U0, float V0 )
@@ -207,25 +248,27 @@ __global__ void collisionKernel( D2Q9Ptr f, uint nx, uint ny, float omega, float
 
     //////////////////////////////////////////////////////////////////////////
 
-    float g00 = f.f00[ nodeIdx00 ];
-    float g0p = f.f0p[ nodeIdx00 ];
-    float gpp = f.fpp[ nodeIdx00 ];
-    float gp0 = f.fp0[ nodeIdx00 ];
+    D2Q9Distribution g;
 
-    float gn0 = f.fn0[ nodeIdxp0 ];
-    float gnp = f.fnp[ nodeIdxp0 ];
+    g.f00 = f.f00[ nodeIdx00 ];
+    g.f0p = f.f0p[ nodeIdx00 ];
+    g.fpp = f.fpp[ nodeIdx00 ];
+    g.fp0 = f.fp0[ nodeIdx00 ];
 
-    float gpn = f.fpn[ nodeIdx0p ];
-    float g0n = f.f0n[ nodeIdx0p ];
+    g.fn0 = f.fn0[ nodeIdxp0 ];
+    g.fnp = f.fnp[ nodeIdxp0 ];
 
-    float gnn = f.fnn[ nodeIdxpp ];
+    g.fpn = f.fpn[ nodeIdx0p ];
+    g.f0n = f.f0n[ nodeIdx0p ];
+
+    g.fnn = f.fnn[ nodeIdxpp ];
 
     //////////////////////////////////////////////////////////////////////////
 
-    float dRho = ( ( ( gnp + gpn ) + ( gnn + gpp ) ) + ( ( g0p + g0n ) + ( gp0 + gn0 ) ) ) + g00;
+    float dRho = ( ( (   g.fnp + g.fpn ) + (   g.fnn + g.fpp ) ) + ( ( g.f0p + g.f0n ) + ( g.fp0 + g.fn0 ) ) ) + g.f00;
 
-    float U   = ( ( ( - gnp + gpn ) + ( - gnn + gpp ) ) + (                 ( gp0 - gn0 ) ) ) / ( 1.0f + dRho );
-    float V   = ( ( (   gnp - gpn ) + ( - gnn + gpp ) ) + ( ( g0p - g0n )                 ) ) / ( 1.0f + dRho );
+    float U    = ( ( ( - g.fnp + g.fpn ) + ( - g.fnn + g.fpp ) ) + (                     ( g.fp0 - g.fn0 ) ) ) / ( 1.0f + dRho );
+    float V    = ( ( (   g.fnp - g.fpn ) + ( - g.fnn + g.fpp ) ) + ( ( g.f0p - g.f0n )                     ) ) / ( 1.0f + dRho );
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -233,72 +276,28 @@ __global__ void collisionKernel( D2Q9Ptr f, uint nx, uint ny, float omega, float
 
         if( nx - xIdx < 50 ) omega = 1.0f - float( nx - xIdx )/50.0f * ( 1.0f - omega );
 
-        collisonCascade( g00, 
-                         gp0, 
-                         gn0, 
-                         g0p, 
-                         g0n, 
-                         gpp, 
-                         gpn, 
-                         gnn, 
-                         gnp,
-                         U,
-                         V,
-                         omega );
+        collisonCentralMoments( g, U, V, omega );
 
-        //g00 = g00 * ( 1.0f - omega ) + omega * (   ( (1.0f + dRho) * (-2       + 3*(U*U))*(-2       + 3*(V*V)))/9.  - 4.0f/9.0f  );
-        //gp0 = gp0 * ( 1.0f - omega ) + omega * ( - ( (1.0f + dRho) * ( 1 + 3*U + 3*(U*U))*(-2       + 3*(V*V)))/18. - 1.0f/9.0f  );
-        //gn0 = gn0 * ( 1.0f - omega ) + omega * ( - ( (1.0f + dRho) * ( 1 - 3*U + 3*(U*U))*(-2       + 3*(V*V)))/18. - 1.0f/9.0f  );
-        //g0p = g0p * ( 1.0f - omega ) + omega * ( - ( (1.0f + dRho) * (-2       + 3*(U*U))*( 1 + 3*V + 3*(V*V)))/18. - 1.0f/9.0f  );
-        //g0n = g0n * ( 1.0f - omega ) + omega * ( - ( (1.0f + dRho) * (-2       + 3*(U*U))*( 1 - 3*V + 3*(V*V)))/18. - 1.0f/9.0f  );
-        //gpp = gpp * ( 1.0f - omega ) + omega * (   ( (1.0f + dRho) * ( 1 + 3*U + 3*(U*U))*( 1 + 3*V + 3*(V*V)))/36. - 1.0f/36.0f );
-        //gpn = gpn * ( 1.0f - omega ) + omega * (   ( (1.0f + dRho) * ( 1 + 3*U + 3*(U*U))*( 1 - 3*V + 3*(V*V)))/36. - 1.0f/36.0f );
-        //gnn = gnn * ( 1.0f - omega ) + omega * (   ( (1.0f + dRho) * ( 1 - 3*U + 3*(U*U))*( 1 - 3*V + 3*(V*V)))/36. - 1.0f/36.0f );
-        //gnp = gnp * ( 1.0f - omega ) + omega * (   ( (1.0f + dRho) * ( 1 - 3*U + 3*(U*U))*( 1 + 3*V + 3*(V*V)))/36. - 1.0f/36.0f );
+        //collisionBGK(g, U, V, dRho, omega);
     }
     else if( geo == 2 ){
-        U = U0;
-        V = V0;
-
-        g00 = (   ( (-2 + 3*(U*U))*(-2 + 3*(V*V)))/9. -4.0f/9.0f );
-        gp0 = ( - ( (1 + 3*U + 3*(U*U))*(-2 + 3*(V*V)))/18. -1.0f/9.0f);
-        gn0 = ( - ( (1 - 3*U + 3*(U*U))*(-2 + 3*(V*V)))/18. -1.0f/9.0f);
-        g0p = ( - ( (-2 + 3*(U*U))*(1 + 3*V + 3*(V*V)))/18. -1.0f/9.0f);
-        g0n = ( - ( (-2 + 3*(U*U))*(1 - 3*V + 3*(V*V)))/18. -1.0f/9.0f);
-        gpp = (   ( (1 + 3*U + 3*(U*U))*(1 + 3*V + 3*(V*V)))/36. -1.0f/36.0f);
-        gpn = (   ( (1 + 3*U + 3*(U*U))*(1 - 3*V + 3*(V*V)))/36. -1.0f/36.0f);
-        gnn = (   ( (1 - 3*U + 3*(U*U))*(1 - 3*V + 3*(V*V)))/36. -1.0f/36.0f);
-        gnp = (   ( (1 - 3*U + 3*(U*U))*(1 + 3*V + 3*(V*V)))/36. -1.0f/36.0f);
+        setEquilibrium(g, U0, V0);
     }
     else if( geo == 3 ){
-        V = 0.0f;
-        U = 0.0f;
-
-        g00 = (   ( (-2 + 3*(U*U))*(-2 + 3*(V*V)))/9. -4.0f/9.0f );
-        gp0 = ( - ( (1 + 3*U + 3*(U*U))*(-2 + 3*(V*V)))/18. -1.0f/9.0f);
-        gn0 = ( - ( (1 - 3*U + 3*(U*U))*(-2 + 3*(V*V)))/18. -1.0f/9.0f);
-        g0p = ( - ( (-2 + 3*(U*U))*(1 + 3*V + 3*(V*V)))/18. -1.0f/9.0f);
-        g0n = ( - ( (-2 + 3*(U*U))*(1 - 3*V + 3*(V*V)))/18. -1.0f/9.0f);
-        gpp = (   ( (1 + 3*U + 3*(U*U))*(1 + 3*V + 3*(V*V)))/36. -1.0f/36.0f);
-        gpn = (   ( (1 + 3*U + 3*(U*U))*(1 - 3*V + 3*(V*V)))/36. -1.0f/36.0f);
-        gnn = (   ( (1 - 3*U + 3*(U*U))*(1 - 3*V + 3*(V*V)))/36. -1.0f/36.0f);
-        gnp = (   ( (1 - 3*U + 3*(U*U))*(1 + 3*V + 3*(V*V)))/36. -1.0f/36.0f);
+        setEquilibrium(g, 0.0f, 0.0f);
     }
 
     //////////////////////////////////////////////////////////////////////////
 
-    f.f00[ nodeIdx00 ] = g00;
-    f.f0p[ nodeIdx00 ] = g0n;
-    f.fpp[ nodeIdx00 ] = gnn;
-    f.fp0[ nodeIdx00 ] = gn0;
-
-    f.fn0[ nodeIdxp0 ] = gp0;
-    f.fnp[ nodeIdxp0 ] = gpn;
-
-    f.fpn[ nodeIdx0p ] = gnp;
-    f.f0n[ nodeIdx0p ] = g0p;
-
-    f.fnn[ nodeIdxpp ] = gpp;
+    f.f00[ nodeIdx00 ] = g.f00;
+    f.f0p[ nodeIdx00 ] = g.f0n;
+    f.fpp[ nodeIdx00 ] = g.fnn;
+    f.fp0[ nodeIdx00 ] = g.fn0;
+    f.fn0[ nodeIdxp0 ] = g.fp0;
+    f.fnp[ nodeIdxp0 ] = g.fpn;
+    f.fpn[ nodeIdx0p ] = g.fnp;
+    f.f0n[ nodeIdx0p ] = g.f0p;
+    f.fnn[ nodeIdxpp ] = g.fpp;
 }
 
 __global__ void postProcessingMacroscopicQuantitiesKernel( D2Q9Ptr f, uint nx, uint ny )
@@ -379,45 +378,6 @@ __global__ void postProcessingSetColorKernel( D2Q9Ptr f, uint nx, uint ny, float
 
     if( type == 'p' ) value = f.pressure[ nodeIdx00 ];
     else              value = f.velocity[ nodeIdx00 ];
-        
-    //// Color map exported from Paraview
-    //const float colorMap[36][3] = 
-    ///*  0 */  { { 0.000000000000000000f,   0.000000000000000000f,   0.349020000000000000f  },
-    ///*  1 */    { 0.039216000000000001f,   0.062744999999999995f,   0.380392000000000010f  },
-    ///*  2 */    { 0.062744999999999995f,   0.117647000000000000f,   0.411764999999999990f  },
-    ///*  3 */    { 0.090195999999999998f,   0.184314000000000010f,   0.450979999999999990f  },
-    ///*  4 */    { 0.125489999999999990f,   0.262745000000000010f,   0.501960999999999990f  },
-    ///*  5 */    { 0.160784000000000010f,   0.337255000000000030f,   0.541175999999999990f  },
-    ///*  6 */    { 0.200000000000000010f,   0.396077999999999990f,   0.568626999999999990f  },
-    ///*  7 */    { 0.239216000000000010f,   0.454901999999999970f,   0.599999999999999980f  },
-    ///*  8 */    { 0.286275000000000000f,   0.521568999999999950f,   0.650980000000000000f  },
-    ///*  9 */    { 0.337255000000000030f,   0.592157000000000040f,   0.701960999999999950f  },
-    ///* 10 */    { 0.388235000000000000f,   0.654901999999999980f,   0.749020000000000020f  },
-    ///* 11 */    { 0.466667000000000000f,   0.737254999999999990f,   0.819608000000000000f  },
-    ///* 12 */    { 0.572548999999999970f,   0.819608000000000000f,   0.878430999999999960f  },
-    ///* 13 */    { 0.654901999999999980f,   0.866666999999999970f,   0.909803999999999950f  },
-    ///* 14 */    { 0.752940999999999970f,   0.917646999999999990f,   0.941176000000000010f  },
-    ///* 15 */    { 0.823528999999999960f,   0.956863000000000020f,   0.968627000000000020f  },
-    ///* 16 */    { 0.988234999999999970f,   0.960783999999999970f,   0.901961000000000010f  },
-    ///* 17 */    { 0.941176000000000010f,   0.984314000000000020f,   0.988234999999999970f  },
-    ///* 18 */    { 0.988234999999999970f,   0.945097999999999990f,   0.850979999999999960f  },
-    ///* 19 */    { 0.980392000000000040f,   0.898039000000000030f,   0.784313999999999960f  },
-    ///* 20 */    { 0.968627000000000020f,   0.835293999999999980f,   0.698038999999999970f  },
-    ///* 21 */    { 0.949019999999999970f,   0.733333000000000010f,   0.588234999999999950f  },
-    ///* 22 */    { 0.929412000000000020f,   0.650980000000000000f,   0.509804000000000030f  },
-    ///* 23 */    { 0.909803999999999950f,   0.564706000000000040f,   0.435294000000000010f  },
-    ///* 24 */    { 0.878430999999999960f,   0.458824000000000010f,   0.352941000000000000f  },
-    ///* 25 */    { 0.839215999999999960f,   0.388235000000000000f,   0.286275000000000000f  },
-    ///* 26 */    { 0.760784000000000020f,   0.294117999999999990f,   0.211765000000000010f  },
-    ///* 27 */    { 0.701960999999999950f,   0.211765000000000010f,   0.168627000000000000f  },
-    ///* 28 */    { 0.650980000000000000f,   0.156863000000000000f,   0.129412000000000000f  },
-    ///* 29 */    { 0.599999999999999980f,   0.094117999999999993f,   0.094117999999999993f  },
-    ///* 30 */    { 0.549019999999999950f,   0.066667000000000004f,   0.098039000000000001f  },
-    ///* 31 */    { 0.501960999999999990f,   0.050979999999999998f,   0.125489999999999990f  },
-    ///* 32 */    { 0.450979999999999990f,   0.054901999999999999f,   0.172549000000000010f  },
-    ///* 33 */    { 0.400000000000000020f,   0.054901999999999999f,   0.192156999999999990f  },
-    ///* 34 */    { 0.349020000000000000f,   0.070587999999999998f,   0.211765000000000010f  },
-    //            { 0.349020000000000000f,   0.070587999999999998f,   0.211765000000000010f  } };
     
     if( value < min )
         value = 0.0f;

@@ -53,6 +53,19 @@ struct D2Q9Ptr
     floatPtr velocity;
 };
 
+struct D2Q9Distribution
+{
+    float f00;
+    float fp0;
+    float fn0;
+    float fpp;
+    float fnp;
+    float fpn;
+    float fnn;
+    float f0p;
+    float f0n;
+};
+
 class lbmSolver
 {
 private:
