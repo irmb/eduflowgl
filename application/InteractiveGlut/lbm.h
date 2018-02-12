@@ -17,7 +17,7 @@ typedef thrust::device_ptr<char>  charPtr;
 
 class cudaGraphicsResource;
 
-struct D2Q9
+struct D2Q9Memory
 {
     floatVecPtr f00;
     floatVecPtr fp0;
@@ -57,7 +57,7 @@ class lbmSolver
 {
 private:
 
-    D2Q9 f;
+    D2Q9Memory f;
 
     uint nx;
     uint ny;
@@ -94,6 +94,15 @@ public:
     void scaleColorMap();
 
     void setGeo( uint xIdx, uint yIdx, char geo );
+
+    void  setNu( float nu );
+    float getNu();
+
+    void  setU( float U );
+    void  setV( float V );
+
+    float getU();
+    float getV();
 
     //////////////////////////////////////////////////////////////////////////
 

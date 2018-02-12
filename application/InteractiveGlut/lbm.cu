@@ -12,6 +12,7 @@
 #include <helper_cuda.h>
 
 #include "lbmKernels.cuh"
+#include "colorMap.cuh"
 
 #define THREADS_PER_BLOCK 8
 
@@ -43,8 +44,12 @@ lbmSolver::lbmSolver( uint nx, uint ny, float omega, float U, float V )
     this->minPressure = -1.0e-3f;
     this->maxPressure =  1.0e-3f;
 
-    this->minVelocity =  0.0;
-    this->maxVelocity =  0.02;
+    this->minVelocity =  0.0f;
+    this->maxVelocity =  0.02f;
+
+    checkCudaErrors( cudaMemcpyToSymbol( colorMapDeviceR, colorMapHostR, 36*sizeof(float) ) );
+    checkCudaErrors( cudaMemcpyToSymbol( colorMapDeviceG, colorMapHostG, 36*sizeof(float) ) );
+    checkCudaErrors( cudaMemcpyToSymbol( colorMapDeviceB, colorMapHostB, 36*sizeof(float) ) );
 }
 
 lbmSolver::~lbmSolver()
@@ -170,6 +175,42 @@ void lbmSolver::setGeo(uint xIdx, uint yIdx, char geo)
     }
 
     setGeoKernel<<<1, threads>>>( this->getDistPtr(), this->nx, this->ny, xIdx, yIdx, geo );
+}
+
+void lbmSolver::setNu(float nu)
+{
+    if( nu < 1.0e-8f ) nu = 1.0e-8f;
+    if( nu > 0.1f )     nu = 0.1f;
+    this->omega = 1.0f / ( 3.0f * nu + 0.5f );
+}
+
+float lbmSolver::getNu()
+{
+    return ( 1.0f / this->omega - 0.5f ) / 3.0f;
+}
+
+void lbmSolver::setU(float U)
+{
+    if( U >  0.1f ) U =  0.1f;
+    if( U < -0.1f ) U = -0.1f;
+    this->U = U;
+}
+
+void lbmSolver::setV(float V)
+{
+    if( V >  0.1f ) V =  0.1f;
+    if( V < -0.1f ) V = -0.1f;
+    this->V = V;
+}
+
+float lbmSolver::getU()
+{
+    return this->U;
+}
+
+float lbmSolver::getV()
+{
+    return this->V;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

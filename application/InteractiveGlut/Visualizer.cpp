@@ -259,6 +259,7 @@ void Visualizer::motion(int x, int y)
 
 void Visualizer::keyboard(unsigned char key, int x, int y)
 {
+    int R;
     switch (key)
     {
         case 'v':
@@ -286,7 +287,48 @@ void Visualizer::keyboard(unsigned char key, int x, int y)
         case 'n':
             std::cout << "Performance: " << std::endl;
             std::cout << "    " << nups << " NUPS" << std::endl;
-            std::cout << "    " << fps  << " FPS" << std::endl;
+            std::cout << "    " << fps  << " FPS"  << std::endl;
+            break;
+
+        case '*':
+            Visualizer::solver->setNu( 10.0f * Visualizer::solver->getNu() );
+            std::cout << "Viscosity = " << Visualizer::solver->getNu() << std::endl;
+            break;
+
+        case '/':
+            Visualizer::solver->setNu( 0.1f * Visualizer::solver->getNu() );
+            std::cout << "Viscosity = " << Visualizer::solver->getNu() << std::endl;
+            break;
+
+        case '+':
+            Visualizer::solver->setU( Visualizer::solver->getU() + 0.001f );
+            std::cout << "U = " << Visualizer::solver->getU() << std::endl;
+            break;
+
+        case '-':
+            Visualizer::solver->setU( Visualizer::solver->getU() - 0.001f );
+            std::cout << "U = " << Visualizer::solver->getU() << std::endl;
+            break;
+
+        case '8':
+            Visualizer::timeStepsPerFrame++;
+            std::cout << "dt / frame = " << Visualizer::timeStepsPerFrame << std::endl;
+            break;
+
+        case '2':
+            Visualizer::timeStepsPerFrame--;
+            if( Visualizer::timeStepsPerFrame < 1 ) Visualizer::timeStepsPerFrame = 1;
+            std::cout << "dt / frame = " << Visualizer::timeStepsPerFrame << std::endl;
+            break;
+
+        case 'c':
+            R = Visualizer::ny/4;
+            for( int x = -R; x <= R; x++ ){
+                for( int y = -R; y <= R; y++ ){
+                    if( sqrt( x * x + y * y ) > R ) continue;
+                    solver->setGeo(2*R + x, 2*R + y,1);
+                }
+            }
             break;
 
         default:
