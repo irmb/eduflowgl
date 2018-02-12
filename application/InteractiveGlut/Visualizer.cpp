@@ -18,6 +18,8 @@ std::vector<uint>  Visualizer::elements;
 
 lbmSolverPtr Visualizer::solver = nullptr;
 
+char Visualizer::lbModel = 'b';
+
 bool Visualizer::clicked     = false;
 bool Visualizer::geoModified = false;
 bool Visualizer::delelteGeo  = false;
@@ -262,25 +264,80 @@ void Visualizer::keyboard(unsigned char key, int x, int y)
     int R;
     switch (key)
     {
+
+        case 'h':
+            std::cout << "================================================================================" << std::endl;
+            std::cout << "          H e l p :" << std::endl;
+            std::cout << "================================================================================" << std::endl;
+            std::cout << "" << std::endl;
+            std::cout << "Left Mouse:      Draw solid nodes" << std::endl;
+            std::cout << "Right Mouse:     Delete solid nodes" << std::endl;
+            std::cout << "" << std::endl;
+            std::cout << "b:  toggle BGK and Central Moment methods" << std::endl;
+            std::cout << "" << std::endl;
+            std::cout << "g:  Reset solid nodes" << std::endl;
+            std::cout << "r:  Reset flow field" << std::endl;
+            std::cout << "c:  Draw cylinder" << std::endl;
+            std::cout << "p:  Show pressure field" << std::endl;
+            std::cout << "v:  Show velocity field" << std::endl;
+            std::cout << "s:  Scale color map" << std::endl;
+            std::cout << "" << std::endl;
+            std::cout << "n:  Show performance" << std::endl;
+            std::cout << "" << std::endl;
+            std::cout << "*:  increase viscosity by factor 10" << std::endl;
+            std::cout << "/:  reduce viscosity by factor 10" << std::endl;
+            std::cout << "+:  increase velocity by 0.01 dx/dt" << std::endl;
+            std::cout << "-:  reduce velocity by 0.01 dx/dt" << std::endl;
+            std::cout << "" << std::endl;
+            std::cout << "8:  increase time steps per frame by one" << std::endl;
+            std::cout << "2:  decrease time steps per frame by one" << std::endl;
+            std::cout << "================================================================================" << std::endl;
+            break;
+
+        case 'b':
+            if( solver->getLBModel() == 'b' ){
+                solver->setLBModel('c');
+                std::cout << "Using central moment method!" << std::endl;
+            }
+            else{
+                solver->setLBModel('b');
+                std::cout << "Using BGK!" << std::endl;
+            }
+            break;
+
+        case 'w':
+            if( solver->getGeoMode() == 'b' ){
+                solver->setGeoMode('w');
+            }
+            else{
+                solver->setGeoMode('b');
+            }
+            break;
+
         case 'v':
-            std::cout << "Show Velocity" << std::endl;
+            std::cout << "Show Velocity!" << std::endl;
             postProcessingType = 'v';
             solver->scaleColorMap();
             break;
 
         case 'p':
-            std::cout << "Show Pressure" << std::endl;
+            std::cout << "Show Pressure!" << std::endl;
             postProcessingType = 'p';
             solver->scaleColorMap();
             break;
 
         case 'r':
-            std::cout << "Initialize Distributions" << std::endl;
+            std::cout << "Initialize Distributions!" << std::endl;
             solver->initializeDistributions();
             break;
 
+        case 'g':
+            std::cout << "Initialize Distributions!" << std::endl;
+            solver->initializeGeo();
+            break;
+
         case 's':
-            std::cout << "Initialize Distributions" << std::endl;
+            std::cout << "Scale ColorMap!" << std::endl;
             solver->scaleColorMap();
             break;
 

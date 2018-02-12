@@ -28,6 +28,8 @@ private:
 
     static lbmSolverPtr solver;
 
+    static char lbModel;
+
     static bool clicked;
     static bool geoModified;
     static bool delelteGeo;

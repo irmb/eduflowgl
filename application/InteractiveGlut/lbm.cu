@@ -21,7 +21,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 lbmSolver::lbmSolver( uint nx, uint ny, float omega, float U, float V )
-    : nx(nx), ny(ny), omega(omega), U(U), V(V)
+    : nx(nx), ny(ny), omega(omega), U(U), V(V), lbModel('c'), geoMode('w')
 {
     this->nx = nx;
     this->ny = ny;
@@ -86,6 +86,17 @@ void lbmSolver::initializeDistributions()
     scaleColorMap();
 }
 
+void lbmSolver::initializeGeo()
+{
+    dim3 threads( THREADS_PER_BLOCK, THREADS_PER_BLOCK );
+    dim3 blocks ( ( this->nx +  THREADS_PER_BLOCK - 1 ) / THREADS_PER_BLOCK,
+                  ( this->ny +  THREADS_PER_BLOCK - 1 ) / THREADS_PER_BLOCK );
+
+    initializeGeoKernel<<<blocks, threads>>>( this->getDistPtr(), this->nx, this->ny );
+
+    scaleColorMap();
+}
+
 void lbmSolver::collision()
 {
     dim3 threads( THREADS_PER_BLOCK, THREADS_PER_BLOCK );
@@ -94,7 +105,7 @@ void lbmSolver::collision()
 
     //////////////////////////////////////////////////////////////////////////
 
-    collisionKernel<<<blocks, threads>>>( this->getDistPtr(), this->nx, this->ny, this->omega, this->U, this->V );
+    collisionKernel<<<blocks, threads>>>( this->getDistPtr(), this->nx, this->ny, this->omega, this->U, this->V, this->lbModel );
     getLastCudaError("collisionKernel failed.");
 
     //////////////////////////////////////////////////////////////////////////
@@ -133,7 +144,7 @@ void lbmSolver::postProcessing( char type )
         max = this->maxVelocity;
     }
 
-    postProcessingSetColorKernel<<<blocks, threads>>>( this->getDistPtr(), this->nx, this->ny, verticesDev, type, min, max );
+    postProcessingSetColorKernel<<<blocks, threads>>>( this->getDistPtr(), this->nx, this->ny, verticesDev, type, min, max, this->geoMode );
     getLastCudaError("postProcessingSetColorKernel failed.");
 
     cudaGraphicsUnmapResources(1, &this->glVertexBufferResource, 0);
@@ -211,6 +222,26 @@ float lbmSolver::getU()
 float lbmSolver::getV()
 {
     return this->V;
+}
+
+void lbmSolver::setLBModel(char lbModel)
+{
+    this->lbModel = lbModel;
+}
+
+char lbmSolver::getLBModel()
+{
+    return this->lbModel;
+}
+
+void lbmSolver::setGeoMode(char geoMode)
+{
+    this->geoMode = geoMode;
+}
+
+char lbmSolver::getGeoMode()
+{
+    return this->geoMode;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

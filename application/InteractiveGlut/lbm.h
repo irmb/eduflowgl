@@ -87,6 +87,9 @@ private:
     float U;
     float V;
 
+    char lbModel;
+    char geoMode;
+
 public:
 
     lbmSolver( uint nx, uint ny, float omega, float U, float V );
@@ -97,6 +100,8 @@ public:
     //////////////////////////////////////////////////////////////////////////
 
     void initializeDistributions();
+
+    void initializeGeo();
 
     void collision();
 
@@ -116,6 +121,12 @@ public:
 
     float getU();
     float getV();
+
+    void setLBModel( char lbModel );
+    char getLBModel();
+
+    void setGeoMode( char geoMode );
+    char getGeoMode();
 
     //////////////////////////////////////////////////////////////////////////
 

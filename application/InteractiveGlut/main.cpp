@@ -12,18 +12,18 @@ typedef unsigned int uint;
 
 //////////////////////////////////////////////////////////////////////////
 
-const int NX = 1500;//300*5;
-const int NY = 1000;//100*5;
+const int NX = 1500/2;//300*5;
+const int NY = 1000/4;//100*5;
 
-const uint pxPerNode = 1;
+const uint pxPerNode = 2;
 
 const uint timeStepsPerFrame = 50;
 
 const float U = 0.025f;
 const float V = 0.000f;
 
-const float nu    = U * NY/4 / 10000000;
-const float omega = 2.0f / ( 6.0f * nu + 1.0f ); // for Re 100
+const float nu    = U * NY/4 / 1000;
+const float omega = 2.0f / ( 6.0f * nu + 1.0f );
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -32,6 +32,8 @@ int main(int argc, char *argv[])
     lbmSolverPtr solver = std::make_shared<lbmSolver>( NX, NY, omega, U, V );
 
     solver->initializeDistributions();
+
+    solver->initializeGeo();
 
     //////////////////////////////////////////////////////////////////////////
 
