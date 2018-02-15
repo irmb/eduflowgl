@@ -18,7 +18,7 @@ private:
     static uint nx;
     static uint ny;
 
-    static uint pxPerVertex;
+    static float pxPerVertex;
     
     static uint vertexBufferID;
     static uint elementBufferID;
@@ -52,7 +52,7 @@ public:
 
     static void initialize( int argc, char *argv[], 
                             uint nx, uint ny, 
-                            uint pxPerVertex, uint timeStepsPerFrame,
+                            float pxPerVertex, uint timeStepsPerFrame,
                             lbmSolverPtr solver );
 
     static void installShaders();

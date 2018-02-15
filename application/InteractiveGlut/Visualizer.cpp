@@ -5,10 +5,12 @@
 
 #include <iostream>
 
+#include "Utility/NacaProfile.h"
+
 uint Visualizer::nx = 0;
 uint Visualizer::ny = 0;
 
-uint Visualizer::pxPerVertex = 0;
+float Visualizer::pxPerVertex = 0;
 
 uint Visualizer::vertexBufferID  = 0;
 uint Visualizer::elementBufferID = 0;
@@ -40,7 +42,7 @@ double Visualizer::fps  = 0.0;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void Visualizer::initialize(int argc, char *argv[], uint nx, uint ny, uint pxPerVertex, uint timeStepsPerFrame, lbmSolverPtr solver)
+void Visualizer::initialize(int argc, char *argv[], uint nx, uint ny, float pxPerVertex, uint timeStepsPerFrame, lbmSolverPtr solver)
 {
     Visualizer::nx          = nx;
     Visualizer::ny          = ny;
@@ -224,32 +226,7 @@ void Visualizer::motion(int x, int y)
 
     std::cout << "Motioned at ( " << xIdx << ", " << yIdx << " )" << std::endl;
 
-    int dxIdx = xIdx - xIdxLast;
-    int dyIdx = yIdx - yIdxLast;
-
-    if( abs(dxIdx) >= abs(dyIdx) ){
-        for( uint idx = 0; idx < abs(dxIdx); idx++ ){
-    
-            float xInc = ( dxIdx != 0 )?( float(dxIdx) / float( abs(dxIdx) ) ):(0);
-            float yInc = ( dxIdx != 0 )?( float(dyIdx) / float( abs(dxIdx) ) ):(0);
-            
-            int x = int(xIdxLast) + float(idx) * xInc;
-            int y = int(yIdxLast) + float(idx) * yInc;
-
-            solver->setGeo(x,y, delelteGeo?0:1);
-        }
-    }else{
-        for( uint idx = 0; idx < abs(dyIdx); idx++ ){
-    
-            float xInc = ( dyIdx != 0 )?( float(dxIdx) / float( abs(dyIdx) ) ):(0);
-            float yInc = ( dyIdx != 0 )?( float(dyIdx) / float( abs(dyIdx) ) ):(0);
-
-            int x = int(xIdxLast) + float(idx) * xInc;
-            int y = int(yIdxLast) + float(idx) * yInc;
-
-            solver->setGeo(x,y, delelteGeo?0:1);
-        }
-    }
+    solver->setGeo( xIdxLast, yIdxLast, xIdx, yIdx, delelteGeo?0:1 );
 
     geoModified = true;
 
@@ -385,6 +362,18 @@ void Visualizer::keyboard(unsigned char key, int x, int y)
                     if( sqrt( x * x + y * y ) > R ) continue;
                     solver->setGeo(2*R + x, 2*R + y,1);
                 }
+            }
+            break;
+
+        case 'a':
+            for( uint idx = 0; idx < nacaProfilePoints; idx++  ){
+
+                float x1 = Visualizer::ny/8 + Visualizer::ny/2 * nacaProfile[(idx  )%nacaProfilePoints][0];
+                float y1 = Visualizer::ny/2 + Visualizer::ny/2 * nacaProfile[(idx  )%nacaProfilePoints][1];
+                float x2 = Visualizer::ny/8 + Visualizer::ny/2 * nacaProfile[(idx+1)%nacaProfilePoints][0];
+                float y2 = Visualizer::ny/2 + Visualizer::ny/2 * nacaProfile[(idx+1)%nacaProfilePoints][1];
+
+                solver->setGeo( x1, y1, x2, y2, 1 );
             }
             break;
 

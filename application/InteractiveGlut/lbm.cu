@@ -188,6 +188,36 @@ void lbmSolver::setGeo(uint xIdx, uint yIdx, char geo)
     setGeoKernel<<<1, threads>>>( this->getDistPtr(), this->nx, this->ny, xIdx, yIdx, geo );
 }
 
+void lbmSolver::setGeo(uint xIdx1, uint yIdx1, uint xIdx2, uint yIdx2, char geo)
+{
+    int dxIdx = xIdx2 - xIdx1;
+    int dyIdx = yIdx2 - yIdx1;
+
+    if( abs(dxIdx) >= abs(dyIdx) ){
+        for( uint idx = 0; idx < abs(dxIdx); idx++ ){
+    
+            float xInc = ( dxIdx != 0 )?( float(dxIdx) / float( abs(dxIdx) ) ):(0);
+            float yInc = ( dxIdx != 0 )?( float(dyIdx) / float( abs(dxIdx) ) ):(0);
+            
+            int x = int(xIdx1) + float(idx) * xInc;
+            int y = int(yIdx1) + float(idx) * yInc;
+
+            this->setGeo(x,y, geo);
+        }
+    }else{
+        for( uint idx = 0; idx < abs(dyIdx); idx++ ){
+    
+            float xInc = ( dyIdx != 0 )?( float(dxIdx) / float( abs(dyIdx) ) ):(0);
+            float yInc = ( dyIdx != 0 )?( float(dyIdx) / float( abs(dyIdx) ) ):(0);
+
+            int x = int(xIdx1) + float(idx) * xInc;
+            int y = int(yIdx1) + float(idx) * yInc;
+
+            this->setGeo(x,y, geo);
+        }
+    }
+}
+
 void lbmSolver::setNu(float nu)
 {
     if( nu < 1.0e-8f ) nu = 1.0e-8f;

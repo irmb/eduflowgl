@@ -113,6 +113,8 @@ public:
 
     void setGeo( uint xIdx, uint yIdx, char geo );
 
+    void setGeo( uint xIdx1, uint yIdx1, uint xIdx2, uint yIdx2, char geo );
+
     void  setNu( float nu );
     float getNu();
 
