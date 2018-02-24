@@ -268,6 +268,8 @@ void Visualizer::keyboard(unsigned char key, int x, int y)
             std::cout << "" << std::endl;
             std::cout << "8:  increase time steps per frame by one" << std::endl;
             std::cout << "2:  decrease time steps per frame by one" << std::endl;
+			std::cout << "4:  turn velocity clockwise" << std::endl;
+			std::cout << "6:  turn velocity anti-clockwise" << std::endl;
             std::cout << "================================================================================" << std::endl;
             break;
 
@@ -335,13 +337,13 @@ void Visualizer::keyboard(unsigned char key, int x, int y)
             break;
 
         case '+':
-            Visualizer::solver->setU( Visualizer::solver->getU() + 0.001f );
-            std::cout << "U = " << Visualizer::solver->getU() << std::endl;
+            Visualizer::solver->setSpeed( Visualizer::solver->getSpeed() + 0.001f );
+            std::cout << "U = " << Visualizer::solver->getU() << " V = " << Visualizer::solver->getV() << std::endl;
             break;
 
         case '-':
-            Visualizer::solver->setU( Visualizer::solver->getU() - 0.001f );
-            std::cout << "U = " << Visualizer::solver->getU() << std::endl;
+            Visualizer::solver->setSpeed( Visualizer::solver->getSpeed() - 0.001f );
+			std::cout << "U = " << Visualizer::solver->getU() << " V = " << Visualizer::solver->getV() << std::endl;
             break;
 
         case '8':
@@ -354,6 +356,18 @@ void Visualizer::keyboard(unsigned char key, int x, int y)
             if( Visualizer::timeStepsPerFrame < 1 ) Visualizer::timeStepsPerFrame = 1;
             std::cout << "dt / frame = " << Visualizer::timeStepsPerFrame << std::endl;
             break;
+
+		case '4':
+			Visualizer::solver->setAlpha(Visualizer::solver->getAlpha() + 2.f*3.141592654f/360.f);
+			Visualizer::solver->setSpeed(Visualizer::solver->getSpeed());
+			std::cout << "alpha = " << Visualizer::solver->getAlpha() << std::endl;
+			break;
+
+		case '6':
+			Visualizer::solver->setAlpha(Visualizer::solver->getAlpha() - 2.f*3.141592654f / 360.f);
+			Visualizer::solver->setSpeed(Visualizer::solver->getSpeed());
+			std::cout << "alpha = " << Visualizer::solver->getAlpha() << std::endl;
+			break;
 
         case 'c':
             R = Visualizer::ny/4;

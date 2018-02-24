@@ -86,6 +86,8 @@ private:
     float omega;
     float U;
     float V;
+	float alpha;
+	float speed;
 
     char lbModel;
     char geoMode;
@@ -120,9 +122,13 @@ public:
 
     void  setU( float U );
     void  setV( float V );
+	void  setAlpha(float alpha);
+	void  setSpeed(float speed);
 
     float getU();
     float getV();
+	float getAlpha();
+	float getSpeed();
 
     void setLBModel( char lbModel );
     char getLBModel();

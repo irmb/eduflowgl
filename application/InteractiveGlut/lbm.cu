@@ -23,6 +23,8 @@
 lbmSolver::lbmSolver( uint nx, uint ny, float omega, float U, float V )
     : nx(nx), ny(ny), omega(omega), U(U), V(V), lbModel('c'), geoMode('w')
 {
+	this->speed = sqrtf(U * U + V * V);
+	this->alpha = acosf(U / sqrt((U*U + V * V + 1.e-20)));
     this->nx = nx;
     this->ny = ny;
 
@@ -244,6 +246,18 @@ void lbmSolver::setV(float V)
     this->V = V;
 }
 
+void lbmSolver::setAlpha(float alpha)
+{
+	this->alpha = alpha;
+}
+
+void lbmSolver::setSpeed(float speed)
+{
+	this->speed = speed;
+	setU(speed*cosf(alpha));
+	setV(speed*sinf(alpha));
+}
+
 float lbmSolver::getU()
 {
     return this->U;
@@ -252,6 +266,16 @@ float lbmSolver::getU()
 float lbmSolver::getV()
 {
     return this->V;
+}
+
+float lbmSolver::getAlpha()
+{
+	return this->alpha;
+}
+
+float lbmSolver::getSpeed()
+{
+	return this->speed;
 }
 
 void lbmSolver::setLBModel(char lbModel)

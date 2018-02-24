@@ -12,14 +12,14 @@ typedef unsigned int uint;
 
 //////////////////////////////////////////////////////////////////////////
 
-const int NX = 1500;//300*5;
-const int NY = 1000;//100*5;
+const int NX = 800;// 1500 / 2;//300*5;
+const int NY = 600;// 1000 / 2;//100*5;
 
 const float pxPerNode = 1;
 
 const uint timeStepsPerFrame = 50;
 
-const float U = 0.025f;
+const float U = 0.025f; 
 const float V = 0.005f;
 
 const float nu    = U * NY/4 / 1000;
