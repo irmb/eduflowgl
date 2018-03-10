@@ -2,6 +2,7 @@
 #include <chrono>
 #include <iostream>
 #include <memory>
+#include <math.h>
 
 #include "lbm.h"
 #include "Visualizer.h"

@@ -4,6 +4,7 @@
 #include <GL/freeglut.h>
 
 #include <iostream>
+#include <math.h>
 
 #include "Utility/NacaProfile.h"
 
