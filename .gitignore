@@ -14,3 +14,4 @@ xcode/**
 ._.DS_Store
 MSVC2017/
 build/
+cmake-build-debug

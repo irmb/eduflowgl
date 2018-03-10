@@ -1,3 +1,4 @@
+#include "colorMap.cuh"
 #include <cuda_runtime.h>
 
 __constant__ float colorMapDeviceR[36];

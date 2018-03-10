@@ -24,8 +24,11 @@ endif()
 
 
 if(APPLE)
-   set(CMAKE_CXX_FLAGS -std=c++11)
-   add_definitions("-Wno-c++11-extensions")
+   set(CMAKE_CXX_FLAGS -std=c++11 CACHE PATH "" FORCE)
+   set(CMAKE_CUDA_FLAGS -std=c++11 CACHE PATH "" FORCE)
+   set(CMAKE_VERBOSE_MAKEFILE ON CACHE PATH "" FORCE)
+
+   #add_definitions("-Wno-c++11-extensions")
 endif()
 
 

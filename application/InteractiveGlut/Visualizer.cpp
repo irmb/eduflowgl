@@ -1,9 +1,16 @@
 #include "Visualizer.h"
 
+#if defined(__APPLE__) || defined(MACOSX)
+#include <GL/glew.h>
+#include <GLUT/glut.h>
+#ifndef glutCloseFunc
+#define glutCloseFunc glutWMCloseFunc
+#endif
+#else
 #include <GL/glew.h>
 #include <GL/freeglut.h>
+#endif
 
-#include <iostream>
 #include <math.h>
 
 #include "Utility/NacaProfile.h"
