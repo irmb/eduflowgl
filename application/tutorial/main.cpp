@@ -32,6 +32,8 @@
 // tdogl classes
 #include "Program.h"
 
+#include "cudaKernel.h"
+
 // constants
 const glm::vec2 SCREEN_SIZE(800, 600);
 
@@ -158,11 +160,15 @@ void AppMain() {
     // create buffer and fill it with the points of the triangle
     LoadTriangle();
 
+    connectVertexBuffer( gVBO );
+
     // run while the window is open
     while(!glfwWindowShouldClose(gWindow)){
         // process pending events
         glfwPollEvents();
         
+        changeTriangle();
+
         // draw one frame
         Render();
     }
