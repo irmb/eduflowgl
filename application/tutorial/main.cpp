@@ -69,15 +69,18 @@ static void LoadTriangle() {
     // Put the three triangle verticies into the VBO
     GLfloat vertexData[] = {
         //  X     Y     Z
-         0.0f, 0.8f, 0.0f,
-        -0.8f,-0.8f, 0.0f,
-         0.8f,-0.8f, 0.0f,
+         0.0f, 0.8f, 0.0f, 0.0, 1.0, 0.0,
+        -0.8f,-0.8f, 0.0f, 1.0, 1.0, 0.0,
+         0.8f,-0.8f, 0.0f, 0.0, 1.0, 1.0
     };
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertexData), vertexData, GL_STATIC_DRAW);
     
     // connect the xyz to the "vert" attribute of the vertex shader
     glEnableVertexAttribArray(gProgram->attrib("vert"));
-    glVertexAttribPointer(gProgram->attrib("vert"), 3, GL_FLOAT, GL_FALSE, 0, NULL);
+    glVertexAttribPointer(gProgram->attrib("vert"), 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, NULL);
+
+    glEnableVertexAttribArray(gProgram->attrib("color"));
+    glVertexAttribPointer(gProgram->attrib("color"), 3, GL_FLOAT, GL_FALSE, sizeof(float) * 6, (char*)(sizeof(float) * 3));
     
     // unbind the VBO and VAO
     glBindBuffer(GL_ARRAY_BUFFER, 0);

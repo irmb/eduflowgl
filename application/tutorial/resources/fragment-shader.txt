@@ -1,8 +1,9 @@
-#version 150
+#version 430
 
-out vec4 finalColor;
+in vec3 outVertexColor;
+out vec4 fragementColor;
 
-void main() {
-    //set every drawn pixel to white
-    finalColor = vec4(1.0, 1.0, 1.0, 1.0);
+void main()
+{
+   fragementColor = vec4(outVertexColor, 1.0);
 }
