@@ -64,3 +64,4 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 #############################################################
 
 add_subdirectory(application/tutorial)
+add_subdirectory(application/InteractiveOpenGL)

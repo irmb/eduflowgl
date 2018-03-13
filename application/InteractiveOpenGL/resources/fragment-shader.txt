@@ -1,0 +1,9 @@
+#version 430
+
+in vec3 outVertexColor;
+out vec4 fragementColor;
+
+void main()
+{
+   fragementColor = vec4(outVertexColor, 1.0);
+}

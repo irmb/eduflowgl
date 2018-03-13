@@ -42,6 +42,8 @@ GLFWwindow* gWindow = NULL;
 tdogl::Program* gProgram = NULL;
 GLuint gVAO = 0;
 GLuint gVBO = 0;
+GLuint gEBO = 0;
+
 
 float delta = 0.001f;
 bool isMouseButtonPressed = false;
@@ -91,6 +93,18 @@ static void LoadTriangle() {
     glBindVertexArray(0);
 }
 
+static void loadElement(){
+
+    glGenBuffers(1, &gEBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gEBO);
+
+    GLuint element [] = {
+        0, 1, 2
+    };
+
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(element), element, GL_STATIC_DRAW);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
 
 // draws a single frame
 static void Render() {
@@ -100,14 +114,18 @@ static void Render() {
     
     // bind the program (the shaders)
     glUseProgram(gProgram->object());
-        
-    // bind the VAO (the triangle)
-    glBindVertexArray(gVAO);
-    
+
     // draw the VAO
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    //glDrawArrays(GL_TRIANGLES, 0, 3);
     
-    // unbind the VAO
+    glBindVertexArray(gVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, gVBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gEBO);
+
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,0);
+    glBindBuffer(GL_ARRAY_BUFFER, gVBO);
     glBindVertexArray(0);
     
     // unbind the program
@@ -186,14 +204,16 @@ void AppMain() {
     std::cout << "Renderer: " << glGetString(GL_RENDERER) << std::endl;
 
     // make sure OpenGL version 3.2 API is available
- //   if(!GLEW_VERSION_3_2)
- //       throw std::runtime_error("OpenGL 3.2 API is not available.");
+    if(!GLEW_VERSION_3_2)
+        throw std::runtime_error("OpenGL 3.2 API is not available.");
 
     // load vertex and fragment shaders into opengl
     LoadShaders();
 
     // create buffer and fill it with the points of the triangle
     LoadTriangle();
+
+    loadElement();
 
     connectVertexBuffer( gVBO );
 
@@ -223,3 +243,8 @@ int main(int argc, char *argv[]) {
 
     return EXIT_SUCCESS;
 }
+
+
+
+
+
