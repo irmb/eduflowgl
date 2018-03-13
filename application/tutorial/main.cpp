@@ -43,6 +43,8 @@ tdogl::Program* gProgram = NULL;
 GLuint gVAO = 0;
 GLuint gVBO = 0;
 
+float delta = 0.001f;
+bool isMouseButtonPressed = false;
 
 // loads the vertex shader and fragment shader, and links them to make the global gProgram
 static void LoadShaders() {
@@ -119,6 +121,33 @@ void OnError(int errorCode, const char* msg) {
     throw std::runtime_error(msg);
 }
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if( action == GLFW_PRESS ){
+        if (key == GLFW_KEY_UP)
+            delta += 0.001f;
+        if (key == GLFW_KEY_DOWN)
+            delta -= 0.001f;
+    }
+}
+
+void mouse_position_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    if( isMouseButtonPressed )
+        std::cout << "( " << xpos << " , " << ypos << " )" << std::endl;
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if( button == GLFW_MOUSE_BUTTON_LEFT ){
+        
+        if( action == GLFW_PRESS )
+            isMouseButtonPressed = true;
+        if( action == GLFW_RELEASE )
+            isMouseButtonPressed = false;
+    }
+}
+
 // the program starts here
 void AppMain() {
     // initialise GLFW
@@ -139,6 +168,12 @@ void AppMain() {
     // GLFW settings
     glfwMakeContextCurrent(gWindow);
     
+    glfwSetKeyCallback(gWindow, key_callback);
+
+    glfwSetCursorPosCallback(gWindow, mouse_position_callback);
+
+    glfwSetMouseButtonCallback(gWindow, mouse_button_callback);
+
     // initialise GLEW
     glewExperimental = GL_TRUE; //stops glew crashing on OSX :-/
     if(glewInit() != GLEW_OK)
@@ -167,7 +202,7 @@ void AppMain() {
         // process pending events
         glfwPollEvents();
         
-        changeTriangle();
+        changeTriangle( delta );
 
         // draw one frame
         Render();

@@ -8,7 +8,7 @@
 
 extern cudaGraphicsResource* glVertexBufferResource;
 
-void changeTriangle();
+void changeTriangle( float delta );
 
 void connectVertexBuffer(unsigned int vertexBufferID);
 

@@ -2,14 +2,14 @@
 
 cudaGraphicsResource* glVertexBufferResource;
 
-__global__ void postProcessingSetColorKernel( float* vertices )
+__global__ void postProcessingSetColorKernel( float* vertices, float delta )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
-    vertices[ 6 * idx + 0 ] = vertices[ 6 * idx + 0 ] + 0.001f;
+    vertices[ 6 * idx + 0 ] = vertices[ 6 * idx + 0 ] + delta;
 }
 
-void changeTriangle()
+void changeTriangle( float delta )
 {
     cudaGraphicsMapResources(1, &glVertexBufferResource, 0);
 
@@ -17,7 +17,7 @@ void changeTriangle()
     size_t num_bytes;
     cudaGraphicsResourceGetMappedPointer((void **)&verticesDev, &num_bytes, glVertexBufferResource);
 
-    postProcessingSetColorKernel<<<1, 3>>>(verticesDev);
+    postProcessingSetColorKernel<<<1, 3>>>(verticesDev, delta);
 
     cudaGraphicsUnmapResources(1, &glVertexBufferResource, 0);
 }
