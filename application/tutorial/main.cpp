@@ -45,8 +45,13 @@ GLuint gVBO = 0;
 // loads the vertex shader and fragment shader, and links them to make the global gProgram
 static void LoadShaders() {
     std::vector<tdogl::Shader> shaders;
+#ifdef __APPLE__
     shaders.push_back(tdogl::Shader::shaderFromFile("../application/tutorial/resources/vertex-shader.txt", GL_VERTEX_SHADER));
     shaders.push_back(tdogl::Shader::shaderFromFile("../application/tutorial/resources/fragment-shader.txt", GL_FRAGMENT_SHADER));
+#else
+    shaders.push_back(tdogl::Shader::shaderFromFile("../../../application/tutorial/resources/vertex-shader.txt", GL_VERTEX_SHADER));
+    shaders.push_back(tdogl::Shader::shaderFromFile("../../../application/tutorial/resources/fragment-shader.txt", GL_FRAGMENT_SHADER));
+#endif
     gProgram = new tdogl::Program(shaders);
 }
 

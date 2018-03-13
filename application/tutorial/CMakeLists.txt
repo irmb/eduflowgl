@@ -9,12 +9,13 @@ if (APPLE)
    #set(libsToLink GLEW)
    set(includeDirectories ${CUDA_CUT_INCLUDE_DIR})
 else()
-   set(linkDirectories ${CMAKE_SOURCE_DIR}/lib/CudaSampleCommon/lib/x64)
-   set(libsToLink freeglut.lib glew64.lib)
-   set(includeDirectories ${CMAKE_SOURCE_DIR}/lib/CudaSampleCommon/inc)
+   set(linkDirectories )
+   set(includeDirectories ${CUDA_CUT_INCLUDE_DIR})
 endif()
 
-set(includeDirectories ${CMAKE_SOURCE_DIR}/3rdparty/glfw/include ${CMAKE_SOURCE_DIR}/3rdParty/glm ${CMAKE_SOURCE_DIR}/3rdParty/glew/include)
+set(glfw_path C:/lib/glfw-3.2.1)
+
+set(includeDirectories ${glfw_path}/include ${CMAKE_SOURCE_DIR}/3rdParty/glm ${CMAKE_SOURCE_DIR}/3rdParty/glew/include)
 #set(includeDirectories ${CMAKE_SOURCE_DIR}/3rdParty/glm)
 
 #message(WARNING "CMAKE_SOURCE_DIR: "${CMAKE_SOURCE_DIR})

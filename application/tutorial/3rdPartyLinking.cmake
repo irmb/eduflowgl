@@ -17,5 +17,7 @@ if(APPLE)
     #TODO: create marcros for:
     # GLFW (available in source code with CMake build files)
     # GLEW is included here
-    target_link_libraries(${targetName} "${CMAKE_SOURCE_DIR}/3rdparty/glfw/lib/libglfw3.a" "${COCOA_LIBRARY}" "${QuartzCore_LIBRARY}" "${IOKit_LIBRARY}")
+    target_link_libraries(${targetName} "${CMAKE_SOURCE_DIR}/3rdparty/glfw/lib/darwin/libglfw3.a" "${COCOA_LIBRARY}" "${QuartzCore_LIBRARY}" "${IOKit_LIBRARY}")
+else()
+    target_link_libraries(${targetName} "${glfw_path}/build/src/Release/glfw3.lib")
 endif()
