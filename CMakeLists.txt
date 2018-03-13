@@ -50,7 +50,7 @@ include(${CMAKE_SOURCE_DIR}/${cmakeMacroPath}/general/CopyDll.cmake)
 #############################################################
 ###                   GENERAL SETTINGS                    ###
 #############################################################
-project(Interactive-LBM-GPGPU)
+project(OpenGLTutorial)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -63,4 +63,4 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 ###                   SUBDIRECTORIES                      ###
 #############################################################
 
-add_subdirectory(application/InteractiveGlut)
+add_subdirectory(application/tutorial)
