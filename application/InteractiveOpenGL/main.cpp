@@ -2,6 +2,7 @@
 #include <chrono>
 #include <iostream>
 #include <memory>
+#include <cmath>
 
 #include "src/LBMSolver.h"
 #include "src/Visualizer.h"
