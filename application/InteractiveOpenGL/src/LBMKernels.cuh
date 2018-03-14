@@ -457,7 +457,7 @@ __global__ void setGeoKernel( D2Q9Ptr f, uint nx, uint ny, uint x, uint y, char 
     xIdx += x;
     yIdx += y;
 
-    if( xIdx < 0 || yIdx < 0 || xIdx >= nx - 1 || yIdx >= ny - 1 ) return;
+    if( xIdx <= 0 || yIdx <= 0 || xIdx >= nx - 2 || yIdx >= ny - 2 ) return;
 
     uint nodeIdx = ( xIdx     ) + ( yIdx     ) * nx;
 
