@@ -464,6 +464,9 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
 
                 solver->setGeo( x1, y1, x2, y2, 1 );
             }
+
+            solver->setGeoFloodFill( Visualizer::ny/8 + 10, Visualizer::ny/2, 1 );
+
             break;
 
         default:

@@ -220,6 +220,34 @@ void lbmSolver::setGeo(uint xIdx1, uint yIdx1, uint xIdx2, uint yIdx2, char geo)
     }
 }
 
+void lbmSolver::setGeoFloodFill(uint xIdx, uint yIdx, char geo)
+{
+    // download geo field
+    charVecHost hostGeo = *this->f.geo;
+
+    setGeoFloodFillRecursion( xIdx, yIdx, geo, hostGeo );
+
+    // upload geo field
+    *this->f.geo = hostGeo;
+}
+
+void lbmSolver::setGeoFloodFillRecursion( uint xIdx, uint yIdx, char geo, charVecHost& hostGeo )
+{
+    if( xIdx <= 0 || yIdx <= 0 || xIdx >= nx - 2 || yIdx >= ny - 2 ) return;
+
+    uint nodeIdx = xIdx + yIdx * nx;
+
+    if( hostGeo[ nodeIdx ] == geo ) return;
+
+    hostGeo[ nodeIdx ] = geo;
+
+    setGeoFloodFillRecursion( xIdx + 1, yIdx    , geo, hostGeo );
+    setGeoFloodFillRecursion( xIdx - 1, yIdx    , geo, hostGeo );
+    setGeoFloodFillRecursion( xIdx    , yIdx + 1, geo, hostGeo );
+    setGeoFloodFillRecursion( xIdx    , yIdx - 1, geo, hostGeo );
+}
+
+
 void lbmSolver::setNu(float nu)
 {
     if( nu < 1.0e-8f ) nu = 1.0e-8f;

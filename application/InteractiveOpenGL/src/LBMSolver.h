@@ -12,6 +12,8 @@ typedef std::shared_ptr< thrust::device_vector<float> > floatVecPtr;
 typedef                  thrust::device_vector<char>    charVec;
 typedef std::shared_ptr< thrust::device_vector<char> >  charVecPtr;
 
+typedef                  thrust::host_vector<char>      charVecHost;
+
 typedef thrust::device_ptr<float> floatPtr;
 typedef thrust::device_ptr<char>  charPtr;
 
@@ -116,6 +118,9 @@ public:
     void setGeo( uint xIdx, uint yIdx, char geo );
 
     void setGeo( uint xIdx1, uint yIdx1, uint xIdx2, uint yIdx2, char geo );
+
+    void setGeoFloodFill( uint xIdx, uint yIdx, char geo );
+    void setGeoFloodFillRecursion( uint xIdx, uint yIdx, char geo, charVecHost& hostGeo );
 
     void  setNu( float nu );
     float getNu();
