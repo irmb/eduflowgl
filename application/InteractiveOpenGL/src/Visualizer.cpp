@@ -270,7 +270,11 @@ void Visualizer::mouseButtonCallback(GLFWwindow* window, int button, int action,
     int xIdx = float(nx) * float(                  x ) / float( nx*pxPerVertex ) ;
     int yIdx = float(ny) * float( ny*pxPerVertex - y ) / float( ny*pxPerVertex ) ;
 
-    if(isMouseButtonPressed) solver->setGeo( xIdx, yIdx, delelteGeo?0:1 );
+    if(isMouseButtonPressed)
+        if( mods & GLFW_MOD_SHIFT )
+            solver->setGeoFloodFill( xIdx, yIdx, delelteGeo?0:1 );
+        else
+            solver->setGeo( xIdx, yIdx, delelteGeo?0:1 );
 
     xIdxLast = xIdx;
     yIdxLast = yIdx;

@@ -11,6 +11,8 @@
 #include <helper_functions.h>
 #include <helper_cuda.h>
 
+#include <queue>
+
 #include "lbmKernels.cuh"
 #include "colorMap.cuh"
 
@@ -222,29 +224,39 @@ void lbmSolver::setGeo(uint xIdx1, uint yIdx1, uint xIdx2, uint yIdx2, char geo)
 
 void lbmSolver::setGeoFloodFill(uint xIdx, uint yIdx, char geo)
 {
+    // based on
+    // https://stackoverflow.com/questions/30608448/flood-fill-recursive-stack-overflow
+
     // download geo field
     charVecHost hostGeo = *this->f.geo;
 
-    setGeoFloodFillRecursion( xIdx, yIdx, geo, hostGeo );
+    //setGeoFloodFillRecursion( xIdx, yIdx, geo, hostGeo );
+
+    struct coordinate { uint x, y; };
+    std::queue<coordinate> to_draw;
+    to_draw.push({xIdx, yIdx});
+
+    while (!to_draw.empty())
+    {
+        auto top = to_draw.front();
+        to_draw.pop();
+
+        if( top.x <= 0 || top.y <= 0 || top.x >= nx - 2 || top.y >= ny - 2 ) continue;
+
+        uint nodeIdx = top.x + top.y * nx;
+
+        if( hostGeo[ nodeIdx ] == geo ) continue;
+
+        hostGeo[ nodeIdx ] = geo;
+
+        to_draw.push( { top.x, top.y + 1 } );
+        to_draw.push( { top.x, top.y - 1 } );
+        to_draw.push( { top.x + 1, top.y } );
+        to_draw.push( { top.x - 1, top.y } );
+    }
 
     // upload geo field
     *this->f.geo = hostGeo;
-}
-
-void lbmSolver::setGeoFloodFillRecursion( uint xIdx, uint yIdx, char geo, charVecHost& hostGeo )
-{
-    if( xIdx <= 0 || yIdx <= 0 || xIdx >= nx - 2 || yIdx >= ny - 2 ) return;
-
-    uint nodeIdx = xIdx + yIdx * nx;
-
-    if( hostGeo[ nodeIdx ] == geo ) return;
-
-    hostGeo[ nodeIdx ] = geo;
-
-    setGeoFloodFillRecursion( xIdx + 1, yIdx    , geo, hostGeo );
-    setGeoFloodFillRecursion( xIdx - 1, yIdx    , geo, hostGeo );
-    setGeoFloodFillRecursion( xIdx    , yIdx + 1, geo, hostGeo );
-    setGeoFloodFillRecursion( xIdx    , yIdx - 1, geo, hostGeo );
 }
 
 
