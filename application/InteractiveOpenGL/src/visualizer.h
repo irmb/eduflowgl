@@ -77,7 +77,7 @@ public:
 
     static void mouseMotionCallback(GLFWwindow* window, double xpos, double ypos);
 
-    static void keyboard(unsigned char key, int x, int y);
+    static void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
 
     // get/set
     static uint getVertexBufferID();

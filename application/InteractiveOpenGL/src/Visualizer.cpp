@@ -102,7 +102,7 @@ void Visualizer::initialize(uint nx, uint ny, float pxPerVertex, uint timeStepsP
     // GLFW settings
     glfwMakeContextCurrent(Visualizer::gWindow);
     
-    //glfwSetKeyCallback(Visualizer::gWindow, key_callback);
+    glfwSetKeyCallback(Visualizer::gWindow, Visualizer::keyboardCallback);
     glfwSetCursorPosCallback(Visualizer::gWindow, Visualizer::mouseMotionCallback);
     glfwSetMouseButtonCallback(Visualizer::gWindow, Visualizer::mouseButtonCallback);
 
@@ -307,164 +307,168 @@ void Visualizer::mouseMotionCallback(GLFWwindow* window, double xpos, double ypo
     Visualizer::solver->scaleColorMap();
 }
 
-void Visualizer::keyboard(unsigned char key, int x, int y)
+void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-  //  int R;
-  //  switch (key)
-  //  {
+    if( action == GLFW_RELEASE ) return;
 
-  //      case 'h':
-  //          std::cout << "================================================================================" << std::endl;
-  //          std::cout << "          H e l p :" << std::endl;
-  //          std::cout << "================================================================================" << std::endl;
-  //          std::cout << "" << std::endl;
-  //          std::cout << "Left Mouse:      Draw solid nodes" << std::endl;
-  //          std::cout << "Right Mouse:     Delete solid nodes" << std::endl;
-  //          std::cout << "" << std::endl;
-  //          std::cout << "b:  toggle BGK and Central Moment methods" << std::endl;
-  //          std::cout << "" << std::endl;
-  //          std::cout << "g:  Reset solid nodes" << std::endl;
-  //          std::cout << "r:  Reset flow field" << std::endl;
-  //          std::cout << "c:  Draw cylinder" << std::endl;
-  //          std::cout << "p:  Show pressure field" << std::endl;
-  //          std::cout << "v:  Show velocity field" << std::endl;
-  //          std::cout << "s:  Scale color map" << std::endl;
-  //          std::cout << "" << std::endl;
-  //          std::cout << "n:  Show performance" << std::endl;
-  //          std::cout << "" << std::endl;
-  //          std::cout << "*:  increase viscosity by factor 10" << std::endl;
-  //          std::cout << "/:  reduce viscosity by factor 10" << std::endl;
-  //          std::cout << "+:  increase velocity by 0.01 dx/dt" << std::endl;
-  //          std::cout << "-:  reduce velocity by 0.01 dx/dt" << std::endl;
-  //          std::cout << "" << std::endl;
-  //          std::cout << "8:  increase time steps per frame by one" << std::endl;
-  //          std::cout << "2:  decrease time steps per frame by one" << std::endl;
-		//	std::cout << "4:  turn velocity clockwise" << std::endl;
-		//	std::cout << "6:  turn velocity anti-clockwise" << std::endl;
-  //          std::cout << "================================================================================" << std::endl;
-  //          break;
+    int R;
+    switch (key)
+    {
+        case GLFW_KEY_H:
+            std::cout << "================================================================================" << std::endl;
+            std::cout << "          H e l p :" << std::endl;
+            std::cout << "================================================================================" << std::endl;
+            std::cout << "" << std::endl;
+            std::cout << "Left Mouse:      Draw solid nodes" << std::endl;
+            std::cout << "Right Mouse:     Delete solid nodes" << std::endl;
+            std::cout << "" << std::endl;
+            std::cout << "b:  toggle BGK and Central Moment methods" << std::endl;
+            std::cout << "" << std::endl;
+            std::cout << "g:  Reset solid nodes" << std::endl;
+            std::cout << "r:  Reset flow field" << std::endl;
+            std::cout << "c:  Draw cylinder" << std::endl;
+            std::cout << "a:  Draw Airfoil" << std::endl;
+            std::cout << "" << std::endl;
+            std::cout << "p:  Show pressure field" << std::endl;
+            std::cout << "v:  Show velocity field" << std::endl;
+            std::cout << "s:  Scale color map" << std::endl;
+            std::cout << "" << std::endl;
+            std::cout << "n:  Show performance" << std::endl;
+            std::cout << "" << std::endl;
+            std::cout << "Up:     increase viscosity by factor 10" << std::endl;
+            std::cout << "Down:   reduce viscosity by factor 10" << std::endl;
+            std::cout << "Right:  increase velocity by 0.01 dx/dt" << std::endl;
+            std::cout << "Left:   reduce velocity by 0.01 dx/dt" << std::endl;
+			std::cout << "1:      turn velocity clockwise" << std::endl;
+			std::cout << "2:      turn velocity anti-clockwise" << std::endl;
+            std::cout << "" << std::endl;
+            std::cout << "Page Up:    increase time steps per frame by one" << std::endl;
+            std::cout << "Page Down:  decrease time steps per frame by one" << std::endl;
+            std::cout << "" << std::endl;
+            std::cout << "================================================================================" << std::endl;
+            break;
 
-  //      case 'b':
-  //          if( solver->getLBModel() == 'b' ){
-  //              solver->setLBModel('c');
-  //              std::cout << "Using central moment method!" << std::endl;
-  //          }
-  //          else{
-  //              solver->setLBModel('b');
-  //              std::cout << "Using BGK!" << std::endl;
-  //          }
-  //          break;
+        case GLFW_KEY_B:
+            if( solver->getLBModel() == 'b' ){
+                solver->setLBModel('c');
+                std::cout << "Using central moment method!" << std::endl;
+            }
+            else{
+                solver->setLBModel('b');
+                std::cout << "Using BGK!" << std::endl;
+            }
+            break;
 
-  //      case 'w':
-  //          if( solver->getGeoMode() == 'b' ){
-  //              solver->setGeoMode('w');
-  //          }
-  //          else{
-  //              solver->setGeoMode('b');
-  //          }
-  //          break;
+        case GLFW_KEY_W:
+            if( solver->getGeoMode() == 'b' ){
+                solver->setGeoMode('w');
+            }
+            else{
+                solver->setGeoMode('b');
+            }
+            break;
 
-  //      case 'v':
-  //          std::cout << "Show Velocity!" << std::endl;
-  //          postProcessingType = 'v';
-  //          solver->scaleColorMap();
-  //          break;
+        case GLFW_KEY_V:
+            std::cout << "Show Velocity!" << std::endl;
+            postProcessingType = 'v';
+            solver->scaleColorMap();
+            break;
 
-  //      case 'p':
-  //          std::cout << "Show Pressure!" << std::endl;
-  //          postProcessingType = 'p';
-  //          solver->scaleColorMap();
-  //          break;
+        case GLFW_KEY_P:
+            std::cout << "Show Pressure!" << std::endl;
+            postProcessingType = 'p';
+            solver->scaleColorMap();
+            break;
 
-  //      case 'r':
-  //          std::cout << "Initialize Distributions!" << std::endl;
-  //          solver->initializeDistributions();
-  //          break;
+        case GLFW_KEY_R:
+            std::cout << "Initialize Distributions!" << std::endl;
+            solver->initializeDistributions();
+            break;
 
-  //      case 'g':
-  //          std::cout << "Initialize Distributions!" << std::endl;
-  //          solver->initializeGeo();
-  //          break;
+        case GLFW_KEY_G:
+            std::cout << "Initialize Distributions!" << std::endl;
+            solver->initializeGeo();
+            break;
 
-  //      case 's':
-  //          std::cout << "Scale ColorMap!" << std::endl;
-  //          solver->scaleColorMap();
-  //          break;
+        case GLFW_KEY_S:
+            std::cout << "Scale ColorMap!" << std::endl;
+            solver->scaleColorMap();
+            break;
 
-  //      case 'n':
-  //          std::cout << "Performance: " << std::endl;
-  //          std::cout << "    " << nups << " NUPS" << std::endl;
-  //          std::cout << "    " << fps  << " FPS"  << std::endl;
-  //          break;
+        case GLFW_KEY_N:
+            std::cout << "Performance: " << std::endl;
+            std::cout << "    " << nups << " NUPS" << std::endl;
+            std::cout << "    " << fps  << " FPS"  << std::endl;
+            break;
 
-  //      case '*':
-  //          Visualizer::solver->setNu( 10.0f * Visualizer::solver->getNu() );
-  //          std::cout << "Viscosity = " << Visualizer::solver->getNu() << std::endl;
-  //          break;
+        case GLFW_KEY_UP:
+            Visualizer::solver->setNu( 10.0f * Visualizer::solver->getNu() );
+            std::cout << "Viscosity = " << Visualizer::solver->getNu() << std::endl;
+            break;
 
-  //      case '/':
-  //          Visualizer::solver->setNu( 0.1f * Visualizer::solver->getNu() );
-  //          std::cout << "Viscosity = " << Visualizer::solver->getNu() << std::endl;
-  //          break;
+        case GLFW_KEY_DOWN:
+            Visualizer::solver->setNu( 0.1f * Visualizer::solver->getNu() );
+            std::cout << "Viscosity = " << Visualizer::solver->getNu() << std::endl;
+            break;
 
-  //      case '+':
-  //          Visualizer::solver->setSpeed( Visualizer::solver->getSpeed() + 0.001f );
-  //          std::cout << "U = " << Visualizer::solver->getU() << " V = " << Visualizer::solver->getV() << std::endl;
-  //          break;
+        case GLFW_KEY_RIGHT:
+            Visualizer::solver->setSpeed( Visualizer::solver->getSpeed() + 0.001f );
+            std::cout << "U = " << Visualizer::solver->getU() << " V = " << Visualizer::solver->getV() << std::endl;
+            break;
 
-  //      case '-':
-  //          Visualizer::solver->setSpeed( Visualizer::solver->getSpeed() - 0.001f );
-		//	std::cout << "U = " << Visualizer::solver->getU() << " V = " << Visualizer::solver->getV() << std::endl;
-  //          break;
+        case GLFW_KEY_LEFT:
+            Visualizer::solver->setSpeed( Visualizer::solver->getSpeed() - 0.001f );
+			std::cout << "U = " << Visualizer::solver->getU() << " V = " << Visualizer::solver->getV() << std::endl;
+            break;
 
-  //      case '8':
-  //          Visualizer::timeStepsPerFrame++;
-  //          std::cout << "dt / frame = " << Visualizer::timeStepsPerFrame << std::endl;
-  //          break;
+        case GLFW_KEY_PAGE_UP:
+            Visualizer::timeStepsPerFrame++;
+            std::cout << "dt / frame = " << Visualizer::timeStepsPerFrame << std::endl;
+            break;
 
-  //      case '2':
-  //          Visualizer::timeStepsPerFrame--;
-  //          if( Visualizer::timeStepsPerFrame < 1 ) Visualizer::timeStepsPerFrame = 1;
-  //          std::cout << "dt / frame = " << Visualizer::timeStepsPerFrame << std::endl;
-  //          break;
+        case GLFW_KEY_PAGE_DOWN:
+            Visualizer::timeStepsPerFrame--;
+            if( Visualizer::timeStepsPerFrame < 1 ) Visualizer::timeStepsPerFrame = 1;
+            std::cout << "dt / frame = " << Visualizer::timeStepsPerFrame << std::endl;
+            break;
 
-		//case '4':
-		//	Visualizer::solver->setAlpha(Visualizer::solver->getAlpha() + 2.f*3.141592654f/360.f);
-		//	Visualizer::solver->setSpeed(Visualizer::solver->getSpeed());
-		//	std::cout << "alpha = " << Visualizer::solver->getAlpha() << std::endl;
-		//	break;
+		case GLFW_KEY_1:
+			Visualizer::solver->setAlpha(Visualizer::solver->getAlpha() + 2.f*3.141592654f/360.f);
+			Visualizer::solver->setSpeed(Visualizer::solver->getSpeed());
+			std::cout << "alpha = " << Visualizer::solver->getAlpha() << std::endl;
+			break;
 
-		//case '6':
-		//	Visualizer::solver->setAlpha(Visualizer::solver->getAlpha() - 2.f*3.141592654f / 360.f);
-		//	Visualizer::solver->setSpeed(Visualizer::solver->getSpeed());
-		//	std::cout << "alpha = " << Visualizer::solver->getAlpha() << std::endl;
-		//	break;
+		case GLFW_KEY_2:
+			Visualizer::solver->setAlpha(Visualizer::solver->getAlpha() - 2.f*3.141592654f / 360.f);
+			Visualizer::solver->setSpeed(Visualizer::solver->getSpeed());
+			std::cout << "alpha = " << Visualizer::solver->getAlpha() << std::endl;
+			break;
 
-  //      case 'c':
-  //          R = Visualizer::ny/4;
-  //          for( int x = -R; x <= R; x++ ){
-  //              for( int y = -R; y <= R; y++ ){
-  //                  if( sqrt( x * x + y * y ) > R ) continue;
-  //                  solver->setGeo(2*R + x, 2*R + y,1);
-  //              }
-  //          }
-  //          break;
+        case GLFW_KEY_C:
+            R = Visualizer::ny/4;
+            for( int x = -R; x <= R; x++ ){
+                for( int y = -R; y <= R; y++ ){
+                    if( sqrt( x * x + y * y ) > R ) continue;
+                    solver->setGeo(2*R + x, 2*R + y,1);
+                }
+            }
+            break;
 
-  //      case 'a':
-  //          for( uint idx = 0; idx < nacaProfilePoints; idx++  ){
+        case GLFW_KEY_A:
+            for( uint idx = 0; idx < nacaProfilePoints; idx++  ){
 
-  //              float x1 = Visualizer::ny/8 + Visualizer::ny/2 * nacaProfile[(idx  )%nacaProfilePoints][0];
-  //              float y1 = Visualizer::ny/2 + Visualizer::ny/2 * nacaProfile[(idx  )%nacaProfilePoints][1];
-  //              float x2 = Visualizer::ny/8 + Visualizer::ny/2 * nacaProfile[(idx+1)%nacaProfilePoints][0];
-  //              float y2 = Visualizer::ny/2 + Visualizer::ny/2 * nacaProfile[(idx+1)%nacaProfilePoints][1];
+                float x1 = Visualizer::ny/8 + Visualizer::ny/2 * nacaProfile[(idx  )%nacaProfilePoints][0];
+                float y1 = Visualizer::ny/2 + Visualizer::ny/2 * nacaProfile[(idx  )%nacaProfilePoints][1];
+                float x2 = Visualizer::ny/8 + Visualizer::ny/2 * nacaProfile[(idx+1)%nacaProfilePoints][0];
+                float y2 = Visualizer::ny/2 + Visualizer::ny/2 * nacaProfile[(idx+1)%nacaProfilePoints][1];
 
-  //              solver->setGeo( x1, y1, x2, y2, 1 );
-  //          }
-  //          break;
+                solver->setGeo( x1, y1, x2, y2, 1 );
+            }
+            break;
 
-  //      default:
-  //          break;
-  //  }
+        default:
+            break;
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
