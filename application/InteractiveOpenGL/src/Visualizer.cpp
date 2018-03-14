@@ -27,7 +27,7 @@ lbmSolverPtr Visualizer::solver = nullptr;
 
 char Visualizer::lbModel = 'b';
 
-bool Visualizer::clicked     = false;
+bool Visualizer::isMouseButtonPressed     = false;
 bool Visualizer::geoModified = false;
 bool Visualizer::delelteGeo  = false;
 
@@ -103,8 +103,8 @@ void Visualizer::initialize(uint nx, uint ny, float pxPerVertex, uint timeStepsP
     glfwMakeContextCurrent(Visualizer::gWindow);
     
     //glfwSetKeyCallback(Visualizer::gWindow, key_callback);
-    //glfwSetCursorPosCallback(Visualizer::gWindow, mouse_position_callback);
-    //glfwSetMouseButtonCallback(Visualizer::gWindow, mouse_button_callback);
+    glfwSetCursorPosCallback(Visualizer::gWindow, Visualizer::mouseMotionCallback);
+    glfwSetMouseButtonCallback(Visualizer::gWindow, Visualizer::mouseButtonCallback);
 
     // initialise GLEW
     glewExperimental = GL_TRUE; //stops glew crashing on OSX :-/
@@ -238,9 +238,6 @@ void Visualizer::displayCall()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBufferID);
 
     glDrawElements(GL_TRIANGLES, elements.size(), GL_UNSIGNED_INT, nullptr);
-    //glDrawElements(GL_QUADS, elements.size(), GL_UNSIGNED_INT, nullptr);
-
-    
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -251,50 +248,63 @@ void Visualizer::displayCall()
     glfwSwapBuffers(gWindow);
 }
 
-void Visualizer::click(int button, int updown, int x, int y)
+void Visualizer::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-    //clicked = !clicked;
+    if( action == GLFW_PRESS )
+        isMouseButtonPressed = true;
+    if( action == GLFW_RELEASE )
+        isMouseButtonPressed = false;
 
-    //if( button == GLUT_RIGHT_BUTTON && updown == GLUT_DOWN )
-    //    delelteGeo = true;
-    //else
-    //    delelteGeo = false;
+    if( button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS )
+        delelteGeo = true;
+    else
+        delelteGeo = false;
 
-    //std::cout << "Clicked at ( " << x << ", " << y << " )" << std::endl;
+    double xpos, ypos;
+    glfwGetCursorPos(window, &xpos, &ypos);
+    float x = float(xpos);
+    float y = float(ypos);
 
-    //int xIdx = ( float(nx) - 8.0f/pxPerVertex ) * float(                  x ) / float( nx*pxPerVertex ) ;
-    //int yIdx = ( float(ny) - 8.0f/pxPerVertex ) * float( ny*pxPerVertex - y ) / float( ny*pxPerVertex ) ;
+    std::cout << "Clicked at ( " << x << ", " << y << " )" << std::endl;
+    
+    int xIdx = float(nx) * float(                  x ) / float( nx*pxPerVertex ) ;
+    int yIdx = float(ny) * float( ny*pxPerVertex - y ) / float( ny*pxPerVertex ) ;
 
-    //if(clicked) solver->setGeo( xIdx, yIdx, delelteGeo?0:1 );
+    if(isMouseButtonPressed) solver->setGeo( xIdx, yIdx, delelteGeo?0:1 );
 
-    //xIdxLast = xIdx;
-    //yIdxLast = yIdx;
+    xIdxLast = xIdx;
+    yIdxLast = yIdx;
 }
 
-void Visualizer::motion(int x, int y)
+void Visualizer::mouseMotionCallback(GLFWwindow* window, double xpos, double ypos)
 {
-    //std::cout << "Motioned at ( " << x << ", " << y << " )" << std::endl;
+    if( !isMouseButtonPressed ) return;
 
-    //int xIdx = ( float(nx) - 8.0f/pxPerVertex ) * float(                  x ) / float( nx*pxPerVertex ) ;
-    //int yIdx = ( float(ny) - 8.0f/pxPerVertex ) * float( ny*pxPerVertex - y ) / float( ny*pxPerVertex ) ;
-    //
-    //std::cout << "Motioned at ( " << xIdx << ", " << yIdx << " )" << std::endl;
+    float x = float(xpos);
+    float y = float(ypos);
 
-    //if( xIdx <  0 || xIdx > 1000000 ) xIdx = 0;
-    //if( yIdx <  0 || yIdx > 1000000 ) yIdx = 0;
-    //if( xIdx >= nx - 2 )              xIdx = nx - 2;
-    //if( yIdx >= ny - 2 )              yIdx = ny - 2;
+    std::cout << "Motioned at ( " << x << ", " << y << " )" << std::endl;
+    
+    int xIdx = float(nx) * float(                  x ) / float( nx*pxPerVertex ) ;
+    int yIdx = float(ny) * float( ny*pxPerVertex - y ) / float( ny*pxPerVertex ) ;
 
-    //std::cout << "Motioned at ( " << xIdx << ", " << yIdx << " )" << std::endl;
+    std::cout << "Motioned at ( " << xIdx << ", " << yIdx << " )" << std::endl;
 
-    //solver->setGeo( xIdxLast, yIdxLast, xIdx, yIdx, delelteGeo?0:1 );
+    if( xIdx <  0 || xIdx > 1000000 ) xIdx = 0;
+    if( yIdx <  0 || yIdx > 1000000 ) yIdx = 0;
+    if( xIdx >= nx - 2 )              xIdx = nx - 2;
+    if( yIdx >= ny - 2 )              yIdx = ny - 2;
 
-    //geoModified = true;
+    std::cout << "Motioned at ( " << xIdx << ", " << yIdx << " )" << std::endl;
 
-    //xIdxLast = xIdx;
-    //yIdxLast = yIdx;
+    solver->setGeo( xIdxLast, yIdxLast, xIdx, yIdx, delelteGeo?0:1 );
 
-    //Visualizer::solver->scaleColorMap();
+    geoModified = true;
+
+    xIdxLast = xIdx;
+    yIdxLast = yIdx;
+
+    Visualizer::solver->scaleColorMap();
 }
 
 void Visualizer::keyboard(unsigned char key, int x, int y)

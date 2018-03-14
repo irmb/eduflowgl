@@ -38,7 +38,7 @@ private:
 
     static char lbModel;
 
-    static bool clicked;
+    static bool isMouseButtonPressed;
     static bool geoModified;
     static bool delelteGeo;
 
@@ -73,9 +73,9 @@ public:
     // Callback Functions
     static void displayCall();
 
-    static void click(int button, int updown, int x, int y);
+    static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 
-    static void motion(int x, int y);
+    static void mouseMotionCallback(GLFWwindow* window, double xpos, double ypos);
 
     static void keyboard(unsigned char key, int x, int y);
 
