@@ -24,6 +24,7 @@ private:
 
     static uint nx;
     static uint ny;
+    static uint lref;
 
     static float pxPerVertex;
     
@@ -58,7 +59,7 @@ private:
 
 public:
 
-    static void initialize( uint nx, uint ny, 
+    static void initialize( uint nx, uint ny,  
                             float pxPerVertex, uint timeStepsPerFrame,
                             lbmSolverPtr solver );
 

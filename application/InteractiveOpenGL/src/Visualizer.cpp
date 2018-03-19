@@ -74,6 +74,7 @@ void Visualizer::initialize(uint nx, uint ny, float pxPerVertex, uint timeStepsP
 {
     Visualizer::nx          = nx;
     Visualizer::ny          = ny;
+    //Visualizer::lref          = lref;
     Visualizer::pxPerVertex = pxPerVertex;
     Visualizer::solver      = solver;
     
@@ -410,21 +411,25 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
         case GLFW_KEY_UP:
             Visualizer::solver->setNu( 10.0f * Visualizer::solver->getNu() );
             std::cout << "Viscosity = " << Visualizer::solver->getNu() << std::endl;
+            //std::cout << "Re = " << Visualizer::solver->getSpeed()*lref*(Visualizer::solver->getNu()) << std::endl;
             break;
 
         case GLFW_KEY_DOWN:
             Visualizer::solver->setNu( 0.1f * Visualizer::solver->getNu() );
             std::cout << "Viscosity = " << Visualizer::solver->getNu() << std::endl;
+            //std::cout << "Re = " << Visualizer::solver->getSpeed()*lref*(Visualizer::solver->getNu()) << std::endl;
             break;
 
         case GLFW_KEY_RIGHT:
             Visualizer::solver->setSpeed( Visualizer::solver->getSpeed() + 0.001f );
             std::cout << "U = " << Visualizer::solver->getU() << " V = " << Visualizer::solver->getV() << std::endl;
+            //std::cout << "Re = " << Visualizer::solver->getSpeed()*lref*(Visualizer::solver->getNu()) << std::endl;
             break;
 
         case GLFW_KEY_LEFT:
             Visualizer::solver->setSpeed( Visualizer::solver->getSpeed() - 0.001f );
 			std::cout << "U = " << Visualizer::solver->getU() << " V = " << Visualizer::solver->getV() << std::endl;
+            //std::cout << "Re = " << Visualizer::solver->getSpeed()*lref*(Visualizer::solver->getNu()) << std::endl;
             break;
 
         case GLFW_KEY_PAGE_UP:
