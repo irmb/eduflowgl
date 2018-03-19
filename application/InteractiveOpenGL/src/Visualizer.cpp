@@ -332,6 +332,7 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
             std::cout << "r:  Reset flow field" << std::endl;
             std::cout << "c:  Draw cylinder" << std::endl;
             std::cout << "a:  Draw Airfoil" << std::endl;
+			std::cout << "m:  Draw Mesh" << std::endl;
             std::cout << "" << std::endl;
             std::cout << "p:  Show pressure field" << std::endl;
             std::cout << "v:  Show velocity field" << std::endl;
@@ -348,6 +349,7 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
             std::cout << "" << std::endl;
             std::cout << "Page Up:    increase time steps per frame by one" << std::endl;
             std::cout << "Page Down:  decrease time steps per frame by one" << std::endl;
+			std::cout << "0:	set 20 frames per second" << std::endl;
             std::cout << "" << std::endl;
             std::cout << "================================================================================" << std::endl;
             break;
@@ -448,6 +450,11 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
 			std::cout << "alpha = " << Visualizer::solver->getAlpha() << std::endl;
 			break;
 
+		case GLFW_KEY_0:
+			Visualizer::timeStepsPerFrame = (uint)(fps*timeStepsPerFrame / 20.f + 1);
+			std::cout << "dt / frame = " << Visualizer::timeStepsPerFrame << std::endl;
+			break;
+
         case GLFW_KEY_C:
             R = Visualizer::ny/4;
             for( int x = -R; x <= R; x++ ){
@@ -457,6 +464,13 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
                 }
             }
             break;
+
+		case GLFW_KEY_M:
+			for (int y = 1; y <= ny; y++) {
+					if (y%11 ==0) solver->setGeo(2, y, 1);
+					if (y % 13 == 0) solver->setGeo(5, y, 1);
+			}
+			break;
 
         case GLFW_KEY_A:
             for( uint idx = 0; idx < nacaProfilePoints; idx++  ){
