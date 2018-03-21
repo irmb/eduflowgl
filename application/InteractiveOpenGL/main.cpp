@@ -48,6 +48,7 @@ int main(int argc, char *argv[])
     Visualizer::generateElements();
 
     solver->connectVertexBuffer( Visualizer::getVertexBufferID() );
+    solver->setRefLength(Lref);
 
     //////////////////////////////////////////////////////////////////////////
 

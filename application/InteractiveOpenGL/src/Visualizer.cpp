@@ -4,6 +4,8 @@
 #include <GLFW/glfw3.h>
 
 #include <iostream>
+#include <string>
+#include <sstream>
 #include <cmath>
 
 #include "Utility/NacaProfile.h"
@@ -96,7 +98,7 @@ void Visualizer::initialize(uint nx, uint ny, float pxPerVertex, uint timeStepsP
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-    Visualizer::gWindow = glfwCreateWindow(pxPerVertex*nx, pxPerVertex*ny, "iRMB - Interactive LBM Solver with CUDA and OpenGL", NULL, NULL);
+    Visualizer::gWindow = glfwCreateWindow(pxPerVertex*nx, pxPerVertex*ny, "edu::folw", NULL, NULL);
     if(!Visualizer::gWindow)
         throw std::runtime_error("glfwCreateWindow failed. Can your hardware handle OpenGL 3.2?");
 
@@ -314,6 +316,10 @@ void Visualizer::mouseMotionCallback(GLFWwindow* window, double xpos, double ypo
 
 void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+    std::stringstream titleString;
+    char * title = new char [250];
+    const char* titleC=title;
+    titleString<<"edu::flow "<<nx<<" x "<<ny<<" ";
     if( action == GLFW_RELEASE ) return;
 
     int R;
@@ -359,10 +365,14 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
             if( solver->getLBModel() == 'b' ){
                 solver->setLBModel('c');
                 std::cout << "Using central moment method!" << std::endl;
+
+
             }
             else{
                 solver->setLBModel('b');
                 std::cout << "Using BGK!" << std::endl;
+                std::cout << "Using central moment method!" << std::endl;
+
             }
             break;
 
@@ -495,6 +505,10 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
         default:
             break;
     }
+                titleString<<((solver->getLBModel()=='b') ? "Collision: BGK": "Collision: CUMULANT");
+                titleString<<" Re="<<solver->getRefLength()*solver->getSpeed()/solver->getNu();
+                std::strcpy(title,titleString.str().c_str());
+                glfwSetWindowTitle(gWindow,titleC);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

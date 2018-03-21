@@ -76,6 +76,7 @@ private:
 
     uint nx;
     uint ny;
+    uint refLength;
 
     cudaGraphicsResource* glVertexBufferResource; // handles OpenGL-CUDA exchange
 
@@ -129,11 +130,13 @@ public:
     void  setV( float V );
 	void  setAlpha(float alpha);
 	void  setSpeed(float speed);
+    void  setRefLength(uint ref);
 
     float getU();
     float getV();
 	float getAlpha();
 	float getSpeed();
+    uint getRefLength();
 
     void setLBModel( char lbModel );
     char getLBModel();

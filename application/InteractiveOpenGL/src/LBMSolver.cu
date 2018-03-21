@@ -29,6 +29,7 @@ lbmSolver::lbmSolver( uint nx, uint ny, float omega, float U, float V )
 	this->alpha = acosf(U / sqrt((U*U + V * V + 1.e-20)));
     this->nx = nx;
     this->ny = ny;
+    this->refLength=ny;
 
     this->f.f00 = std::make_shared<floatVec>( nx * ny );
     this->f.fp0 = std::make_shared<floatVec>( nx * ny );
@@ -298,6 +299,11 @@ void lbmSolver::setSpeed(float speed)
 	setV(speed*sinf(alpha));
 }
 
+void lbmSolver::setRefLength(uint ref)
+{
+	this->refLength = ref;
+}
+
 float lbmSolver::getU()
 {
     return this->U;
@@ -316,6 +322,11 @@ float lbmSolver::getAlpha()
 float lbmSolver::getSpeed()
 {
 	return this->speed;
+}
+
+uint lbmSolver::getRefLength()
+{
+	return this->refLength;
 }
 
 void lbmSolver::setLBModel(char lbModel)
