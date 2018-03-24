@@ -13,11 +13,11 @@ typedef unsigned int uint;
 
 //////////////////////////////////////////////////////////////////////////
 
-const int NX = 420*2*2;//1500;//300*5;
-const int NY = 170*2*2*2;//1000;//100*5;
-const int Lref=(12*NY)/30;
+int NX = 420*2*2 ;//1500;//300*5;
+int NY = 170*2*2*2 ;//1000;//100*5;
+int Lref=(12*NY)/30;
 
-const float pxPerNode = 0.5;
+float pxPerNode = 0.5;
 
 const uint timeStepsPerFrame = 300;
 
@@ -31,6 +31,14 @@ const float omega = 2.0f / ( 6.0f * nu + 1.0f );
 
 int main(int argc, char *argv[])
 {
+    if (argc>1) pxPerNode=atof(argv[1]);
+    if (argc>=3){
+        NX=atoi(argv[2]);
+        NY=atoi(argv[3]);
+        //if (argc>3) {
+        // Lref=NY*atof(argv[3]);
+        //}
+    }
     lbmSolverPtr solver = std::make_shared<lbmSolver>( NX, NY, omega, U, V );
 
     solver->initializeDistributions();
@@ -48,10 +56,11 @@ int main(int argc, char *argv[])
     Visualizer::generateElements();
 
     solver->connectVertexBuffer( Visualizer::getVertexBufferID() );
-    solver->setRefLength(Lref);
+    solver->setRefLength((Lref>0 )? Lref: NY);
 
     //////////////////////////////////////////////////////////////////////////
 
+ 
     int r = Lref/2;
 
     for( int x = -r; x <= r; x++ ){
@@ -60,7 +69,7 @@ int main(int argc, char *argv[])
             solver->setGeo(1.9*r + x, NY/2 + y+50,1);
         }
     }
-
+ 
     //////////////////////////////////////////////////////////////////////////
 
     Visualizer::run();

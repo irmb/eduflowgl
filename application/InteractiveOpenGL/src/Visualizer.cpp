@@ -98,7 +98,7 @@ void Visualizer::initialize(uint nx, uint ny, float pxPerVertex, uint timeStepsP
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-    Visualizer::gWindow = glfwCreateWindow(pxPerVertex*nx, pxPerVertex*ny, "edu::folw", NULL, NULL);
+    Visualizer::gWindow = glfwCreateWindow(pxPerVertex*nx, pxPerVertex*ny, "edu::flow", NULL, NULL);
     if(!Visualizer::gWindow)
         throw std::runtime_error("glfwCreateWindow failed. Can your hardware handle OpenGL 3.2?");
 
@@ -484,6 +484,18 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
 			for (int y = 1; y <= ny; y++) {
 					if (y%11 ==0) solver->setGeo(2, y, 1);
 					if (y % 13 == 0) solver->setGeo(5, y, 1);
+			}
+			break;
+
+        case GLFW_KEY_K:
+			for (int y = 1; y <= (2*ny)/3; y++) {
+                solver->setGeo(1,y,1);
+                solver->setGeo(nx-3,y,1);
+                for (int x=1; x<=nx;x++){
+                    solver->setGeo(x,2,1);
+                    if (y/2%67<45 && (y/2)% 71<67 && (x/2)%41<37 && (x/2)%47<31) solver->setGeo(x,y,1);
+                }
+
 			}
 			break;
 
