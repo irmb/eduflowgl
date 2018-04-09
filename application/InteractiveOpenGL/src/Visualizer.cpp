@@ -10,40 +10,40 @@
 
 #include "Utility/NacaProfile.h"
 
-GLFWwindow* Visualizer::gWindow = NULL;
-tdogl::Program* Visualizer::gProgram = NULL;
-
-uint Visualizer::nx = 0;
-uint Visualizer::ny = 0;
-
-float Visualizer::pxPerVertex = 0;
-
-uint Visualizer::vertexArrayID   = 0;
-uint Visualizer::vertexBufferID  = 0;
-uint Visualizer::elementBufferID = 0;
-
-std::vector<float> Visualizer::vertices;
-std::vector<uint>  Visualizer::elements;
-
-lbmSolverPtr Visualizer::solver = nullptr;
-
-char Visualizer::lbModel = 'b';
-
-bool Visualizer::isMouseButtonPressed     = false;
-bool Visualizer::geoModified = false;
-bool Visualizer::delelteGeo  = false;
-
-uint Visualizer::xIdxLast = 0;
-uint Visualizer::yIdxLast = 0;
-
-char Visualizer::postProcessingType = 'v';
-
-uint Visualizer::timeStepsPerFrame = 100;
-
-StopWatchPtr Visualizer::stopWatch = nullptr;
-
-double Visualizer::nups = 0.0; 
-double Visualizer::fps  = 0.0; 
+//GLFWwindow* Visualizer::gWindow = NULL;
+//tdogl::Program* Visualizer::gProgram = NULL;
+//
+//uint Visualizer::nx = 0;
+//uint Visualizer::ny = 0;
+//
+//float Visualizer::pxPerVertex = 0;
+//
+//uint Visualizer::vertexArrayID   = 0;
+//uint Visualizer::vertexBufferID  = 0;
+//uint Visualizer::elementBufferID = 0;
+//
+//std::vector<float> Visualizer::vertices;
+//std::vector<uint>  this->elements;
+//
+//lbmSolverPtr Visualizer::solver = nullptr;
+//
+//char Visualizer::lbModel = 'b';
+//
+//bool Visualizer::isMouseButtonPressed     = false;
+//bool Visualizer::geoModified = false;
+//bool Visualizer::delelteGeo  = false;
+//
+//uint Visualizer::xIdxLast = 0;
+//uint Visualizer::yIdxLast = 0;
+//
+//char Visualizer::postProcessingType = 'v';
+//
+//uint Visualizer::timeStepsPerFrame = 100;
+//
+//StopWatchPtr Visualizer::stopWatch = nullptr;
+//
+//double Visualizer::nups = 0.0; 
+//double Visualizer::fps  = 0.0; 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -72,17 +72,29 @@ void OnError(int errorCode, const char* msg) {
     throw std::runtime_error(msg);
 }
 
+Visualizer::Visualizer(uint nx, uint ny, float pxPerVertex, uint timeStepsPerFrame, lbmSolverPtr solver)
+{
+    initialize(nx, ny, pxPerVertex, timeStepsPerFrame, solver);
+}
+
 void Visualizer::initialize(uint nx, uint ny, float pxPerVertex, uint timeStepsPerFrame, lbmSolverPtr solver)
 {
-    Visualizer::nx          = nx;
-    Visualizer::ny          = ny;
+    this->nx          = nx;
+    this->ny          = ny;
     //Visualizer::lref          = lref;
-    Visualizer::pxPerVertex = pxPerVertex;
-    Visualizer::solver      = solver;
+    this->pxPerVertex = pxPerVertex;
+    this->solver      = solver;
     
-    Visualizer::timeStepsPerFrame = timeStepsPerFrame;
+    this->timeStepsPerFrame = timeStepsPerFrame;
 
-    Visualizer::stopWatch   = std::make_shared<StopWatch>();
+    this->lbModel = 'b';
+    this->postProcessingType = 'v';
+
+    this->isMouseButtonPressed = false;
+    this->geoModified          = false;
+    this->delelteGeo           = false;
+
+    this->stopWatch   = std::make_shared<StopWatch>();
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -98,16 +110,18 @@ void Visualizer::initialize(uint nx, uint ny, float pxPerVertex, uint timeStepsP
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-    Visualizer::gWindow = glfwCreateWindow(pxPerVertex*nx, pxPerVertex*ny, "edu::flow", NULL, NULL);
-    if(!Visualizer::gWindow)
+    this->gWindow = glfwCreateWindow(pxPerVertex*nx, pxPerVertex*ny, "edu::flow", NULL, NULL);
+    if(!this->gWindow)
         throw std::runtime_error("glfwCreateWindow failed. Can your hardware handle OpenGL 3.2?");
 
     // GLFW settings
-    glfwMakeContextCurrent(Visualizer::gWindow);
+    glfwMakeContextCurrent(this->gWindow);
+
+    glfwSetKeyCallback        (this->gWindow, Visualizer::keyboardCallbackWrapper);
+    glfwSetCursorPosCallback  (this->gWindow, Visualizer::mouseMotionCallbackWrapper);
+    glfwSetMouseButtonCallback(this->gWindow, Visualizer::mouseButtonCallbackWrapper);
     
-    glfwSetKeyCallback(Visualizer::gWindow, Visualizer::keyboardCallback);
-    glfwSetCursorPosCallback(Visualizer::gWindow, Visualizer::mouseMotionCallback);
-    glfwSetMouseButtonCallback(Visualizer::gWindow, Visualizer::mouseButtonCallback);
+    glfwSetWindowUserPointer( this->gWindow, this );
 
     // initialise GLEW
     glewExperimental = GL_TRUE; //stops glew crashing on OSX :-/
@@ -251,6 +265,28 @@ void Visualizer::displayCall()
     glfwSwapBuffers(gWindow);
 }
 
+void Visualizer::mouseButtonCallbackWrapper(GLFWwindow* window, int button, int action, int mods)
+{
+    Visualizer* visualizer = (Visualizer*) glfwGetWindowUserPointer(window);
+
+    visualizer->mouseButtonCallback( window, button, action, mods );
+}
+
+void Visualizer::mouseMotionCallbackWrapper(GLFWwindow* window, double xpos, double ypos)
+{
+    Visualizer* visualizer = (Visualizer*) glfwGetWindowUserPointer(window);
+
+    visualizer->mouseMotionCallback( window, xpos, ypos );
+    std::cout << "End of MouseMotionCallback()" << std::endl;
+}
+
+void Visualizer::keyboardCallbackWrapper(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    Visualizer* visualizer = (Visualizer*) glfwGetWindowUserPointer(window);
+
+    visualizer->keyboardCallback(window, key, scancode, action, mods);
+}
+
 void Visualizer::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
     if( action == GLFW_PRESS )
@@ -311,7 +347,8 @@ void Visualizer::mouseMotionCallback(GLFWwindow* window, double xpos, double ypo
     xIdxLast = xIdx;
     yIdxLast = yIdx;
 
-    Visualizer::solver->scaleColorMap();
+    this->solver->scaleColorMap();
+    std::cout << "End of MouseMotionCallback()" << std::endl;
 }
 
 void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -419,59 +456,59 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
             break;
 
         case GLFW_KEY_UP:
-            Visualizer::solver->setNu( 10.0f * Visualizer::solver->getNu() );
-            std::cout << "Viscosity = " << Visualizer::solver->getNu() << std::endl;
-            //std::cout << "Re = " << Visualizer::solver->getSpeed()*lref*(Visualizer::solver->getNu()) << std::endl;
+            this->solver->setNu( 10.0f * this->solver->getNu() );
+            std::cout << "Viscosity = " << this->solver->getNu() << std::endl;
+            //std::cout << "Re = " << this->solver->getSpeed()*lref*(this->solver->getNu()) << std::endl;
             break;
 
         case GLFW_KEY_DOWN:
-            Visualizer::solver->setNu( 0.1f * Visualizer::solver->getNu() );
-            std::cout << "Viscosity = " << Visualizer::solver->getNu() << std::endl;
-            //std::cout << "Re = " << Visualizer::solver->getSpeed()*lref*(Visualizer::solver->getNu()) << std::endl;
+            this->solver->setNu( 0.1f * this->solver->getNu() );
+            std::cout << "Viscosity = " << this->solver->getNu() << std::endl;
+            //std::cout << "Re = " << this->solver->getSpeed()*lref*(this->solver->getNu()) << std::endl;
             break;
 
         case GLFW_KEY_RIGHT:
-            Visualizer::solver->setSpeed( Visualizer::solver->getSpeed() + 0.001f );
-            std::cout << "U = " << Visualizer::solver->getU() << " V = " << Visualizer::solver->getV() << std::endl;
-            //std::cout << "Re = " << Visualizer::solver->getSpeed()*lref*(Visualizer::solver->getNu()) << std::endl;
+            this->solver->setSpeed( this->solver->getSpeed() + 0.001f );
+            std::cout << "U = " << this->solver->getU() << " V = " << this->solver->getV() << std::endl;
+            //std::cout << "Re = " << this->solver->getSpeed()*lref*(this->solver->getNu()) << std::endl;
             break;
 
         case GLFW_KEY_LEFT:
-            Visualizer::solver->setSpeed( Visualizer::solver->getSpeed() - 0.001f );
-			std::cout << "U = " << Visualizer::solver->getU() << " V = " << Visualizer::solver->getV() << std::endl;
-            //std::cout << "Re = " << Visualizer::solver->getSpeed()*lref*(Visualizer::solver->getNu()) << std::endl;
+            this->solver->setSpeed( this->solver->getSpeed() - 0.001f );
+			std::cout << "U = " << this->solver->getU() << " V = " << this->solver->getV() << std::endl;
+            //std::cout << "Re = " << this->solver->getSpeed()*lref*(this->solver->getNu()) << std::endl;
             break;
 
         case GLFW_KEY_PAGE_UP:
-            Visualizer::timeStepsPerFrame++;
-            std::cout << "dt / frame = " << Visualizer::timeStepsPerFrame << std::endl;
+            this->timeStepsPerFrame++;
+            std::cout << "dt / frame = " << this->timeStepsPerFrame << std::endl;
             break;
 
         case GLFW_KEY_PAGE_DOWN:
-            Visualizer::timeStepsPerFrame--;
-            if( Visualizer::timeStepsPerFrame < 1 ) Visualizer::timeStepsPerFrame = 1;
-            std::cout << "dt / frame = " << Visualizer::timeStepsPerFrame << std::endl;
+            this->timeStepsPerFrame--;
+            if( this->timeStepsPerFrame < 1 ) this->timeStepsPerFrame = 1;
+            std::cout << "dt / frame = " << this->timeStepsPerFrame << std::endl;
             break;
 
 		case GLFW_KEY_1:
-			Visualizer::solver->setAlpha(Visualizer::solver->getAlpha() + 2.f*3.141592654f/360.f);
-			Visualizer::solver->setSpeed(Visualizer::solver->getSpeed());
-			std::cout << "alpha = " << Visualizer::solver->getAlpha() << std::endl;
+			this->solver->setAlpha(this->solver->getAlpha() + 2.f*3.141592654f/360.f);
+			this->solver->setSpeed(this->solver->getSpeed());
+			std::cout << "alpha = " << this->solver->getAlpha() << std::endl;
 			break;
 
 		case GLFW_KEY_2:
-			Visualizer::solver->setAlpha(Visualizer::solver->getAlpha() - 2.f*3.141592654f / 360.f);
-			Visualizer::solver->setSpeed(Visualizer::solver->getSpeed());
-			std::cout << "alpha = " << Visualizer::solver->getAlpha() << std::endl;
+			this->solver->setAlpha(this->solver->getAlpha() - 2.f*3.141592654f / 360.f);
+			this->solver->setSpeed(this->solver->getSpeed());
+			std::cout << "alpha = " << this->solver->getAlpha() << std::endl;
 			break;
 
 		case GLFW_KEY_0:
-			Visualizer::timeStepsPerFrame = (uint)(fps*timeStepsPerFrame / 20.f + 1);
-			std::cout << "dt / frame = " << Visualizer::timeStepsPerFrame << std::endl;
+			this->timeStepsPerFrame = (uint)(fps*timeStepsPerFrame / 20.f + 1);
+			std::cout << "dt / frame = " << this->timeStepsPerFrame << std::endl;
 			break;
 
         case GLFW_KEY_C:
-            R = Visualizer::ny/4;
+            R = this->ny/4;
             for( int x = -R; x <= R; x++ ){
                 for( int y = -R; y <= R; y++ ){
                     if( sqrt( x * x + y * y ) > R ) continue;
@@ -502,15 +539,15 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
         case GLFW_KEY_A:
             for( uint idx = 0; idx < nacaProfilePoints; idx++  ){
 
-                float x1 = Visualizer::ny/8 + Visualizer::ny/2 * nacaProfile[(idx  )%nacaProfilePoints][0];
-                float y1 = Visualizer::ny/2 + Visualizer::ny/2 * nacaProfile[(idx  )%nacaProfilePoints][1];
-                float x2 = Visualizer::ny/8 + Visualizer::ny/2 * nacaProfile[(idx+1)%nacaProfilePoints][0];
-                float y2 = Visualizer::ny/2 + Visualizer::ny/2 * nacaProfile[(idx+1)%nacaProfilePoints][1];
+                float x1 = this->ny/8 + this->ny/2 * nacaProfile[(idx  )%nacaProfilePoints][0];
+                float y1 = this->ny/2 + this->ny/2 * nacaProfile[(idx  )%nacaProfilePoints][1];
+                float x2 = this->ny/8 + this->ny/2 * nacaProfile[(idx+1)%nacaProfilePoints][0];
+                float y2 = this->ny/2 + this->ny/2 * nacaProfile[(idx+1)%nacaProfilePoints][1];
 
                 solver->setGeo( x1, y1, x2, y2, 1 );
             }
 
-            solver->setGeoFloodFill( Visualizer::ny/8 + 10, Visualizer::ny/2, 1 );
+            solver->setGeoFloodFill( this->ny/8 + 10, this->ny/2, 1 );
 
             break;
 

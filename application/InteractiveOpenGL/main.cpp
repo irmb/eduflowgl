@@ -19,7 +19,7 @@ int Lref=(12*NY)/30;
 
 float pxPerNode = 0.5;
 
-const uint timeStepsPerFrame = 300;
+const uint timeStepsPerFrame = 100;
 
 const float U = 0.08f; 
 const float V = 0.0f;
@@ -47,15 +47,15 @@ int main(int argc, char *argv[])
 
     //////////////////////////////////////////////////////////////////////////
 
-    Visualizer::initialize( NX, NY, pxPerNode, timeStepsPerFrame, solver );
+    VisualizerPtr visualizer = std::make_shared<Visualizer>( NX, NY, pxPerNode, timeStepsPerFrame, solver );
 
-    Visualizer::installShaders();
+    visualizer->installShaders();
 
-    Visualizer::generateVertices();
+    visualizer->generateVertices();
 
-    Visualizer::generateElements();
+    visualizer->generateElements();
 
-    solver->connectVertexBuffer( Visualizer::getVertexBufferID() );
+    solver->connectVertexBuffer( visualizer->getVertexBufferID() );
     solver->setRefLength((Lref>0 )? Lref: NY);
 
     //////////////////////////////////////////////////////////////////////////
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
  
     //////////////////////////////////////////////////////////////////////////
 
-    Visualizer::run();
+    visualizer->run();
 
     return 0;
 }

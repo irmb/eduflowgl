@@ -19,69 +19,75 @@ class Visualizer
 {
 private:
 
-    static GLFWwindow* gWindow;
-    static tdogl::Program* gProgram;
-
-    static uint nx;
-    static uint ny;
-    static uint lref;
-
-    static float pxPerVertex;
+    GLFWwindow* gWindow;
+    tdogl::Program* gProgram;
     
-    static uint vertexArrayID;
-    static uint vertexBufferID;
-    static uint elementBufferID;
-
-    static std::vector<float> vertices;
-    static std::vector<uint>  elements;
-
-    static lbmSolverPtr solver;
-
-    static char lbModel;
-
-    static bool isMouseButtonPressed;
-    static bool geoModified;
-    static bool delelteGeo;
-
-    static uint xIdxLast;
-    static uint yIdxLast;
-
-    static char postProcessingType;
-
-    static uint timeStepsPerFrame;
-
-    static StopWatchPtr stopWatch;
-
-    static double nups;
-    static double fps;
-
-    Visualizer();
+    uint nx;
+    uint ny;
+    uint lref;
+    
+    float pxPerVertex;
+    
+    uint vertexArrayID;
+    uint vertexBufferID;
+    uint elementBufferID;
+    
+    std::vector<float> vertices;
+    std::vector<uint>  elements;
+    
+    lbmSolverPtr solver;
+    
+    char lbModel;
+    
+    bool isMouseButtonPressed;
+    bool geoModified;
+    bool delelteGeo;
+    
+    uint xIdxLast;
+    uint yIdxLast;
+    
+    char postProcessingType;
+    
+    uint timeStepsPerFrame;
+    
+    StopWatchPtr stopWatch;
+    
+    double nups;
+    double fps;
 
 public:
 
-    static void initialize( uint nx, uint ny,  
-                            float pxPerVertex, uint timeStepsPerFrame,
-                            lbmSolverPtr solver );
+    Visualizer( uint nx, uint ny,  
+                float pxPerVertex, uint timeStepsPerFrame,
+                lbmSolverPtr solver );
 
-    static void installShaders();
-
-    static void generateVertices();
-
-    static void generateElements();
-
-    static void run();
+    void initialize( uint nx, uint ny,  
+                     float pxPerVertex, uint timeStepsPerFrame,
+                     lbmSolverPtr solver );
+    
+    void installShaders();
+    
+    void generateVertices();
+    
+    void generateElements();
+    
+    void run();
 
     // Callback Functions
-    static void displayCall();
-
-    static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-
-    static void mouseMotionCallback(GLFWwindow* window, double xpos, double ypos);
-
-    static void keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+    void displayCall();
+    
+    static void mouseButtonCallbackWrapper(GLFWwindow* window, int button, int action, int mods);
+    static void mouseMotionCallbackWrapper(GLFWwindow* window, double xpos, double ypos);
+    static void keyboardCallbackWrapper   (GLFWwindow* window, int key, int scancode, int action, int mods);
+    
+    void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
+    void mouseMotionCallback(GLFWwindow* window, double xpos, double ypos);
+    void keyboardCallback   (GLFWwindow* window, int key, int scancode, int action, int mods);
 
     // get/set
-    static uint getVertexBufferID();
+    uint getVertexBufferID();
 };
+
+typedef std::shared_ptr<Visualizer> VisualizerPtr;
 
 #endif
