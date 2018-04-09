@@ -121,7 +121,6 @@ public:
     void setGeo( uint xIdx1, uint yIdx1, uint xIdx2, uint yIdx2, char geo );
 
     void setGeoFloodFill( uint xIdx, uint yIdx, char geo );
-    void setGeoFloodFillRecursion( uint xIdx, uint yIdx, char geo, charVecHost& hostGeo );
 
     void  setNu( float nu );
     float getNu();

@@ -60,10 +60,6 @@ public:
     Visualizer( uint nx, uint ny,  
                 float pxPerVertex, uint timeStepsPerFrame,
                 lbmSolverPtr solver );
-
-    void initialize( uint nx, uint ny,  
-                     float pxPerVertex, uint timeStepsPerFrame,
-                     lbmSolverPtr solver );
     
     void installShaders();
     

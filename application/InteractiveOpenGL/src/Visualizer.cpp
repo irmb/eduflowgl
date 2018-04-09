@@ -39,11 +39,6 @@ void OnError(int errorCode, const char* msg) {
 
 Visualizer::Visualizer(uint nx, uint ny, float pxPerVertex, uint timeStepsPerFrame, lbmSolverPtr solver)
 {
-    initialize(nx, ny, pxPerVertex, timeStepsPerFrame, solver);
-}
-
-void Visualizer::initialize(uint nx, uint ny, float pxPerVertex, uint timeStepsPerFrame, lbmSolverPtr solver)
-{
     this->nx          = nx;
     this->ny          = ny;
     //Visualizer::lref          = lref;
@@ -337,6 +332,8 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
             std::cout << "" << std::endl;
             std::cout << "Left Mouse:      Draw solid nodes" << std::endl;
             std::cout << "Right Mouse:     Delete solid nodes" << std::endl;
+            std::cout << "" << std::endl;
+            std::cout << "Press Shift with left or right mouse button to fill or erase whole areas" << std::endl;
             std::cout << "" << std::endl;
             std::cout << "b:  toggle BGK and Central Moment methods" << std::endl;
             std::cout << "" << std::endl;
