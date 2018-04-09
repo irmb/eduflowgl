@@ -10,41 +10,6 @@
 
 #include "Utility/NacaProfile.h"
 
-//GLFWwindow* Visualizer::gWindow = NULL;
-//tdogl::Program* Visualizer::gProgram = NULL;
-//
-//uint Visualizer::nx = 0;
-//uint Visualizer::ny = 0;
-//
-//float Visualizer::pxPerVertex = 0;
-//
-//uint Visualizer::vertexArrayID   = 0;
-//uint Visualizer::vertexBufferID  = 0;
-//uint Visualizer::elementBufferID = 0;
-//
-//std::vector<float> Visualizer::vertices;
-//std::vector<uint>  this->elements;
-//
-//lbmSolverPtr Visualizer::solver = nullptr;
-//
-//char Visualizer::lbModel = 'b';
-//
-//bool Visualizer::isMouseButtonPressed     = false;
-//bool Visualizer::geoModified = false;
-//bool Visualizer::delelteGeo  = false;
-//
-//uint Visualizer::xIdxLast = 0;
-//uint Visualizer::yIdxLast = 0;
-//
-//char Visualizer::postProcessingType = 'v';
-//
-//uint Visualizer::timeStepsPerFrame = 100;
-//
-//StopWatchPtr Visualizer::stopWatch = nullptr;
-//
-//double Visualizer::nups = 0.0; 
-//double Visualizer::fps  = 0.0; 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -245,6 +210,13 @@ void Visualizer::displayCall()
 
     //////////////////////////////////////////////////////////////////////////
 
+    drawFlowField();
+
+    glfwSwapBuffers(gWindow);
+}
+
+void Visualizer::drawFlowField()
+{
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT);
     
@@ -261,8 +233,6 @@ void Visualizer::displayCall()
     glBindVertexArray(0);
 
     glUseProgram(0);
-
-    glfwSwapBuffers(gWindow);
 }
 
 void Visualizer::mouseButtonCallbackWrapper(GLFWwindow* window, int button, int action, int mods)
@@ -277,7 +247,6 @@ void Visualizer::mouseMotionCallbackWrapper(GLFWwindow* window, double xpos, dou
     Visualizer* visualizer = (Visualizer*) glfwGetWindowUserPointer(window);
 
     visualizer->mouseMotionCallback( window, xpos, ypos );
-    std::cout << "End of MouseMotionCallback()" << std::endl;
 }
 
 void Visualizer::keyboardCallbackWrapper(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -348,7 +317,6 @@ void Visualizer::mouseMotionCallback(GLFWwindow* window, double xpos, double ypo
     yIdxLast = yIdx;
 
     this->solver->scaleColorMap();
-    std::cout << "End of MouseMotionCallback()" << std::endl;
 }
 
 void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods)

@@ -45,6 +45,8 @@ int main(int argc, char *argv[])
 
     solver->initializeGeo();
 
+    solver->setRefLength((Lref>0 )? Lref: NY);
+
     //////////////////////////////////////////////////////////////////////////
 
     VisualizerPtr visualizer = std::make_shared<Visualizer>( NX, NY, pxPerNode, timeStepsPerFrame, solver );
@@ -56,7 +58,6 @@ int main(int argc, char *argv[])
     visualizer->generateElements();
 
     solver->connectVertexBuffer( visualizer->getVertexBufferID() );
-    solver->setRefLength((Lref>0 )? Lref: NY);
 
     //////////////////////////////////////////////////////////////////////////
 

@@ -73,13 +73,16 @@ public:
     
     void run();
 
-    // Callback Functions
     void displayCall();
+
+    void drawFlowField();
     
+    // Callback Function Wrapper
     static void mouseButtonCallbackWrapper(GLFWwindow* window, int button, int action, int mods);
     static void mouseMotionCallbackWrapper(GLFWwindow* window, double xpos, double ypos);
     static void keyboardCallbackWrapper   (GLFWwindow* window, int key, int scancode, int action, int mods);
     
+    // Callback Functions called by the Wrappers
     void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
     void mouseMotionCallback(GLFWwindow* window, double xpos, double ypos);
     void keyboardCallback   (GLFWwindow* window, int key, int scancode, int action, int mods);
