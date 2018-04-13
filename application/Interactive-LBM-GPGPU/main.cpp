@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     for( int x = -r; x <= r; x++ ){
         for( int y = -r; y <= r; y++ ){
             if( sqrt( x * x + y * y ) > r ) continue;
-            solver->setGeo(1.9*r + x, NY/2 + y+50,1);
+            solver->setGeo(1.9*r + x, NY/2 + y+50,GEO_SOLID);
         }
     }
  

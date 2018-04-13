@@ -292,14 +292,14 @@ __global__ void initializeGeoKernel( D2Q9Ptr f, uint nx, uint ny )
 
     uint nodeIdx = yIdx * nx + xIdx;
 
-    //if      ( xIdx == nx - 1 || yIdx == ny - 1 ) f.geo[ nodeIdx ] = 1;
-    //else if ( xIdx == 0      || xIdx == nx - 2 ) f.geo[ nodeIdx ] = 2;
-    //else if ( yIdx == 0      || yIdx == ny - 2 ) f.geo[ nodeIdx ] = 3;
-    //else                                         f.geo[ nodeIdx ] = 0;
+    //if      ( xIdx == nx - 1 || yIdx == ny - 1 ) f.geo[ nodeIdx ] = GEO_SOLID;
+    //else if ( xIdx == 0      || xIdx == nx - 2 ) f.geo[ nodeIdx ] = GEO_VELOCITY_EQ;
+    //else if ( yIdx == 0      || yIdx == ny - 2 ) f.geo[ nodeIdx ] = GEO_VELOCITY_ZERO_EQ;
+    //else                                         f.geo[ nodeIdx ] = GEO_FLUID;
 
-    if      ( xIdx == nx - 1 || yIdx == ny - 1 )                                     f.geo[ nodeIdx ] = 1;
-    else if ( yIdx == 0      || xIdx == 0      || xIdx == nx - 2 || yIdx == ny - 2 ) f.geo[ nodeIdx ] = 2;
-    else                                                                             f.geo[ nodeIdx ] = 0;
+    if      ( xIdx == nx - 1 || yIdx == ny - 1 )                                     f.geo[ nodeIdx ] = GEO_SOLID;
+    else if ( yIdx == 0      || xIdx == 0      || xIdx == nx - 2 || yIdx == ny - 2 ) f.geo[ nodeIdx ] = GEO_VELOCITY_EQ;
+    else                                                                             f.geo[ nodeIdx ] = GEO_FLUID;
 }
 
 __global__ void collisionKernel( D2Q9Ptr f, uint nx, uint ny, float omega, float U, float V, char model )
@@ -318,7 +318,7 @@ __global__ void collisionKernel( D2Q9Ptr f, uint nx, uint ny, float omega, float
 
     char  geo = f.geo[ nodeIdx00 ];
 
-    if( geo == 1 ) return;
+    if( geo == GEO_SOLID ) return;
 
     //////////////////////////////////////////////////////////////////////////
 
@@ -330,7 +330,7 @@ __global__ void collisionKernel( D2Q9Ptr f, uint nx, uint ny, float omega, float
 
     //////////////////////////////////////////////////////////////////////////
 
-    if( geo == 0 ){
+    if( geo == GEO_FLUID ){
 
         float dRho;
 
@@ -342,10 +342,10 @@ __global__ void collisionKernel( D2Q9Ptr f, uint nx, uint ny, float omega, float
         if( model == 'c' ) collisonCentralMoments( g, U, V, omega );
         else               collisionBGK(g, U, V, dRho, omega);
     }
-    else if( geo == 2 ){
+    else if( geo == GEO_VELOCITY_EQ ){
         setEquilibrium(g, U, V);
     }
-    else if( geo == 3 ){
+    else if( geo == GEO_VELOCITY_ZERO_EQ ){
         setEquilibrium(g, 0.0f, 0.0f);
     }
 
@@ -370,7 +370,7 @@ __global__ void postProcessingMacroscopicQuantitiesKernel( D2Q9Ptr f, uint nx, u
 
     char  geo = f.geo[ nodeIdx00 ];
 
-    if( geo != 0 ){
+    if( geo != GEO_FLUID ){
         f.pressure[ nodeIdx00 ] = 0.0f;
         f.velocity[ nodeIdx00 ] = 0.0f;
 
@@ -406,7 +406,7 @@ __global__ void postProcessingSetColorKernel( D2Q9Ptr f, uint nx, uint ny, float
 
     char  geo = f.geo[ nodeIdx00 ];
 
-    if( geo == 1 ){
+    if( geo == GEO_SOLID ){
         vertices[ 6 * nodeIdx00 + 3 ] = ( geoMode == 'b' ) ? 0.0f : 1.0f;
         vertices[ 6 * nodeIdx00 + 4 ] = ( geoMode == 'b' ) ? 0.0f : 1.0f;
         vertices[ 6 * nodeIdx00 + 5 ] = ( geoMode == 'b' ) ? 0.0f : 1.0f;

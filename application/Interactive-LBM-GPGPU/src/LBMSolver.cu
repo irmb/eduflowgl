@@ -185,7 +185,7 @@ void lbmSolver::setGeo(uint xIdx, uint yIdx, char geo)
 {
     dim3 threads ( 2, 2 );
 
-    if( geo == 0 ){
+    if( geo == GEO_FLUID ){
         threads.x += 4;
         threads.y += 4;
     }

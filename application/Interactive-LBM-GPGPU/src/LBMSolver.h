@@ -68,6 +68,11 @@ struct D2Q9Distribution
     float f0n;
 };
 
+#define GEO_FLUID 0
+#define GEO_SOLID 1
+#define GEO_VELOCITY_EQ 2
+#define GEO_VELOCITY_ZERO_EQ 3
+
 class lbmSolver
 {
 private:

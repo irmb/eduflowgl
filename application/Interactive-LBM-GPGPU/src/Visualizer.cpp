@@ -275,9 +275,9 @@ void Visualizer::mouseButtonCallback(GLFWwindow* window, int button, int action,
 
     if(isMouseButtonPressed)
         if( mods & GLFW_MOD_SHIFT )
-            solver->setGeoFloodFill( xIdx, yIdx, delelteGeo?0:1 );
+            solver->setGeoFloodFill( xIdx, yIdx, delelteGeo?GEO_FLUID:GEO_SOLID );
         else
-            solver->setGeo( xIdx, yIdx, delelteGeo?0:1 );
+            solver->setGeo( xIdx, yIdx, delelteGeo? GEO_FLUID : GEO_SOLID);
 
     xIdxLast = xIdx;
     yIdxLast = yIdx;
@@ -304,7 +304,7 @@ void Visualizer::mouseMotionCallback(GLFWwindow* window, double xpos, double ypo
 
     std::cout << "Motioned at ( " << xIdx << ", " << yIdx << " )" << std::endl;
 
-    solver->setGeo( xIdxLast, yIdxLast, xIdx, yIdx, delelteGeo?0:1 );
+    solver->setGeo( xIdxLast, yIdxLast, xIdx, yIdx, delelteGeo? GEO_FLUID : GEO_SOLID);
 
     geoModified = true;
 
@@ -477,25 +477,25 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
             for( int x = -R; x <= R; x++ ){
                 for( int y = -R; y <= R; y++ ){
                     if( sqrt( x * x + y * y ) > R ) continue;
-                    solver->setGeo(2*R + x, 2*R + y,1);
+                    solver->setGeo(2*R + x, 2*R + y,GEO_SOLID );
                 }
             }
             break;
 
 		case GLFW_KEY_M:
 			for (int y = 1; y <= ny; y++) {
-					if (y%11 ==0) solver->setGeo(2, y, 1);
-					if (y % 13 == 0) solver->setGeo(5, y, 1);
+					if (y%11 ==0) solver->setGeo(2, y, GEO_SOLID);
+					if (y % 13 == 0) solver->setGeo(5, y, GEO_SOLID);
 			}
 			break;
 
         case GLFW_KEY_K:
 			for (int y = 1; y <= (2*ny)/3; y++) {
-                solver->setGeo(1,y,1);
-                solver->setGeo(nx-3,y,1);
+                solver->setGeo(1,y, GEO_SOLID);
+                solver->setGeo(nx-3,y, GEO_SOLID);
                 for (int x=1; x<=nx;x++){
-                    solver->setGeo(x,2,1);
-                    if (y/2%67<45 && (y/2)% 71<67 && (x/2)%41<37 && (x/2)%47<31) solver->setGeo(x,y,1);
+                    solver->setGeo(x,2, GEO_SOLID);
+                    if (y/2%67<45 && (y/2)% 71<67 && (x/2)%41<37 && (x/2)%47<31) solver->setGeo(x,y, GEO_SOLID);
                 }
 
 			}
@@ -509,10 +509,10 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
                 float x2 = this->ny/8 + this->ny/2 * nacaProfile[(idx+1)%nacaProfilePoints][0];
                 float y2 = this->ny/2 + this->ny/2 * nacaProfile[(idx+1)%nacaProfilePoints][1];
 
-                solver->setGeo( x1, y1, x2, y2, 1 );
+                solver->setGeo( x1, y1, x2, y2, GEO_SOLID);
             }
 
-            solver->setGeoFloodFill( this->ny/8 + 10, this->ny/2, 1 );
+            solver->setGeoFloodFill( this->ny/8 + 10, this->ny/2, GEO_SOLID);
 
             break;
 
