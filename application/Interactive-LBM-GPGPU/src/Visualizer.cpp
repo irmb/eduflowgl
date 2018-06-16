@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include "Utility/NacaProfile.h"
+#include "Utility/CarGeometry.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -513,6 +514,65 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
             }
 
             solver->setGeoFloodFill( this->ny/8 + 10, this->ny/2, GEO_SOLID);
+
+            break;
+
+        case GLFW_KEY_D:
+            for( uint idx = 0; idx < carGeometryPoints; idx++  ){
+
+                float x1 = carGeometry[(idx  )%carGeometryPoints][0];
+                float x2 = carGeometry[(idx+1)%carGeometryPoints][0];
+
+                float y1 = this->ny/2 - carGeometry[(idx  )%carGeometryPoints][1];
+                float y2 = this->ny/2 - carGeometry[(idx+1)%carGeometryPoints][1];
+
+                solver->setGeo( x1, y1, x2, y2, GEO_SOLID);
+            }
+
+            solver->setGeoFloodFill( this->nx/2, this->ny/6, GEO_SOLID);
+
+            R = 40;
+            for( int x = -R; x <= R; x++ ){
+                for( int y = -R; y <= R; y++ ){
+                    if( sqrt( x * x + y * y ) > R ) continue;
+                    solver->setGeo(180 + x, R + y,GEO_SOLID );
+                }
+            }
+
+            R = 40;
+            for( int x = -R; x <= R; x++ ){
+                for( int y = -R; y <= R; y++ ){
+                    if( sqrt( x * x + y * y ) > R ) continue;
+                    solver->setGeo(500 + x, R + y,GEO_SOLID );
+                }
+            }
+
+            break;
+
+        case GLFW_KEY_T:
+
+            {
+                solver->setGeo(50, 270, 50, -10, GEO_SOLID);
+                solver->setGeo(50, 330, 50, 610, GEO_SOLID);
+
+                solver->setGeo(50, 270, 100, 290, GEO_SOLID);
+                solver->setGeo(50, 330, 100, 310, GEO_SOLID);
+
+                solver->setGeo(100, 290, 160, 290, GEO_SOLID);
+                solver->setGeo(100, 310, 150, 310, GEO_SOLID);
+
+                int L = 330;
+
+                solver->setGeo(170, 300, L,   300, GEO_SOLID);
+                solver->setGeo(170, 300, 230, 320, GEO_SOLID);
+                solver->setGeo(230, 320, L,   320, GEO_SOLID);
+                solver->setGeo(L  , 300, L,   320, GEO_SOLID);
+
+                solver->setGeo(160, 290, 160, 250, GEO_SOLID);
+                solver->setGeo(160, 250, L,   250, GEO_SOLID);
+
+                solver->setGeoFloodFill( 300, 310, GEO_SOLID);
+            }
 
             break;
 

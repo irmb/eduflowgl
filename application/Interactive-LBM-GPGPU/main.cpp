@@ -13,18 +13,18 @@ typedef unsigned int uint;
 
 //////////////////////////////////////////////////////////////////////////
 
-int NX = 420*2*2 ;//1500;//300*5;
-int NY = 170*2*2*2 ;//1000;//100*5;
+int NX = 1000;//420*2*2 ;//1500;//300*5;
+int NY = 600;//170*2*2*2 ;//1000;//100*5;
 int Lref=(12*NY)/30;
 
-float pxPerNode = 0.5;
+float pxPerNode = 1.65;
 
-const uint timeStepsPerFrame = 100;
+const uint timeStepsPerFrame = 300;
 
 const float U = 0.08f; 
 const float V = 0.0f;
 
-const float nu    = U * Lref / 400;
+const float nu    = 0.1;//U * Lref / 400;
 const float omega = 2.0f / ( 6.0f * nu + 1.0f );
 
 //////////////////////////////////////////////////////////////////////////
