@@ -108,13 +108,18 @@ Visualizer::Visualizer(uint nx, uint ny, float pxPerVertex, uint timeStepsPerFra
 void Visualizer::installShaders()
 {
     std::vector<tdogl::Shader> shaders;
-#ifdef __APPLE__
-    shaders.push_back(tdogl::Shader::shaderFromFile("../application/Interactive-LBM-GPGPU/resources/vertex-shader.txt", GL_VERTEX_SHADER));
-    shaders.push_back(tdogl::Shader::shaderFromFile("../application/Interactive-LBM-GPGPU/resources/fragment-shader.txt", GL_FRAGMENT_SHADER));
+    
+    std::string resourcePath = __FILE__;
+
+#ifdef _WIN32
+			resourcePath = resourcePath.substr(0, resourcePath.find_last_of('\\') + 1);
 #else
-    shaders.push_back(tdogl::Shader::shaderFromFile("../../../application/Interactive-LBM-GPGPU/resources/vertex-shader.txt", GL_VERTEX_SHADER));
-    shaders.push_back(tdogl::Shader::shaderFromFile("../../../application/Interactive-LBM-GPGPU/resources/fragment-shader.txt", GL_FRAGMENT_SHADER));
+			resourcePath = resourcePath.substr(0, resourcePath.find_last_of('/') + 1);
 #endif
+
+    shaders.push_back(tdogl::Shader::shaderFromFile(resourcePath + "../resources/vertex-shader.txt", GL_VERTEX_SHADER));
+    shaders.push_back(tdogl::Shader::shaderFromFile(resourcePath + "../resources/fragment-shader.txt", GL_FRAGMENT_SHADER));
+
     gProgram = new tdogl::Program(shaders);
 }
 
