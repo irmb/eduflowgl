@@ -1,4 +1,5 @@
-#include "Visualizer.h"
+#include "visualizer.h"
+
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -10,6 +11,18 @@
 
 #include "Utility/NacaProfile.h"
 #include "Utility/CarGeometry.h"
+
+#include <SDL.h>
+
+
+#include <vector>
+#include <stdexcept>
+#include <cstring>
+#include <immintrin.h>
+#include <memory>
+
+
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,7 +51,7 @@ void OnError(int errorCode, const char* msg) {
     throw std::runtime_error(msg);
 }
 
-Visualizer::Visualizer(uint nx, uint ny, float pxPerVertex, uint timeStepsPerFrame, lbmSolverPtr solver)
+Visualizer::Visualizer(uint nx, uint ny, float pxPerVertex, uint timeStepsPerFrame, LBMSolverPtr solver)
 {
     this->nx          = nx;
     this->ny          = ny;
@@ -289,6 +302,197 @@ void Visualizer::mouseButtonCallback(GLFWwindow* window, int button, int action,
     yIdxLast = yIdx;
 }
 
+// void readSolidGeometryFromBMP(const char* bmpFilePath, LBMSolverPtr solver)
+// {
+//     
+//     if (SDL_Init(SDL_INIT_VIDEO) != 0)
+//     {
+//         throw std::runtime_error("SDL_Init failed");
+//     }
+
+//     
+//     SDL_Surface* bmpSurface = SDL_LoadBMP(bmpFilePath);
+//     if (!bmpSurface)
+//     {
+//         throw std::runtime_error("Failed to load BMP file");
+//     }
+
+//     
+//     uint8_t* pixels = static_cast<uint8_t*>(bmpSurface->pixels);
+
+//     
+//     for (int y = 0; y < bmpSurface->h; y++)
+//     {
+//         for (int x = 0; x < bmpSurface->w; x++)
+//         {
+//             
+//             uint8_t pixelColor = pixels[(y * bmpSurface->pitch) + (x * bmpSurface->format->BytesPerPixel)];
+//             if (pixelColor != 0)
+//             {
+//                 
+//                 solver->setGeo(x, y, GEO_SOLID);
+//             }
+//         }
+//     }
+////////////////////////////////////////////////////////////////
+// void Visualizer::readSolidGeometryFromBMP(const char* bmpFilePath, LBMSolverPtr solver)
+// {
+//     std::cout << "Reading solid geometry from BMP file: " << bmpFilePath << std::endl;
+
+//    
+//     if (SDL_Init(SDL_INIT_VIDEO) != 0)
+//     {
+//         throw std::runtime_error("SDL_Init failed: " + std::string(SDL_GetError()));
+//     }
+
+//     
+//     SDL_Surface* bmpSurface = SDL_LoadBMP(bmpFilePath);
+//     if (!bmpSurface)
+//     {
+//          std::cerr << "Failed to load BMP file: " << SDL_GetError() << std::endl;
+//     SDL_Quit();  // Clean up SDL before throwing an exception
+//     throw std::runtime_error("Failed to load BMP file");
+//     }
+
+//     
+//     uint8_t* pixels = static_cast<uint8_t*>(bmpSurface->pixels);
+
+//     
+//     for (int y = 0; y < bmpSurface->h; y++)
+//     {
+//         for (int x = 0; x < bmpSurface->w; x++)
+//         {
+//             
+//             uint8_t pixelColor = pixels[(y * bmpSurface->pitch) + (x * bmpSurface->format->BytesPerPixel)];
+
+//            
+//             std::cout << "Pixel at (" << x << ", " << y << ") has color: " << static_cast<int>(pixelColor) << std::endl;
+
+//             if (pixelColor != 0)
+//             {
+//                 
+//                 solver->setGeo(x, 600 - y, GEO_SOLID);
+//             }
+//         }
+//     }
+
+//     
+//     SDL_FreeSurface(bmpSurface);
+//     
+//     SDL_Quit();
+//     std::cout << "Finished reading solid geometry from BMP file." << std::endl;
+// }
+void Visualizer::readSolidGeometryFromBMP(const char* bmpFilePath, LBMSolverPtr solver)
+{
+    std::cout << "Reading solid geometry from BMP file: " << bmpFilePath << std::endl;
+
+    if (SDL_Init(SDL_INIT_VIDEO) != 0)
+    {
+        throw std::runtime_error("SDL_Init failed: " + std::string(SDL_GetError()));
+    }
+
+    SDL_Surface* bmpSurface = SDL_LoadBMP(bmpFilePath);
+    if (!bmpSurface)
+    {
+        std::cerr << "Failed to load BMP file: " << SDL_GetError() << std::endl;
+        SDL_Quit();
+        throw std::runtime_error("Failed to load BMP file");
+    }
+
+    
+    uint8_t* pixels = static_cast<uint8_t*>(bmpSurface->pixels);
+
+    
+    const int pitch = bmpSurface->pitch;
+    std::vector<uint8_t> pixelData(pitch * bmpSurface->h);
+    for (int y = 0; y < bmpSurface->h; y++)
+    {
+        memcpy(&pixelData[y * pitch], &pixels[y * pitch], pitch);
+    }
+
+    for (int y = 0; y < bmpSurface->h; y++)
+    {
+        for (int x = 0; x < bmpSurface->w; x++)
+        {
+            
+            uint8_t pixelColor = pixelData[y * pitch + x * bmpSurface->format->BytesPerPixel];
+
+            
+            // std::cout << "Pixel at (" << x << ", " << y << ") has color: " << static_cast<int>(pixelColor) << std::endl;
+
+            if (pixelColor != 0)
+            {
+                
+                solver->setGeo(x, 600 - y, GEO_SOLID);
+            }
+        }
+    }
+
+    
+    SDL_FreeSurface(bmpSurface);
+    SDL_Quit();
+    std::cout << "Finished reading solid geometry from BMP file." << std::endl;
+}
+
+
+// void Visualizer::readSolidGeometryFromBMP(const char* bmpFilePath, LBMSolverPtr solver)
+// {
+//     std::cout << "Reading solid geometry from BMP file: " << bmpFilePath << std::endl;
+
+//     if (SDL_Init(SDL_INIT_VIDEO) != 0)
+//     {
+//         throw std::runtime_error("SDL_Init failed: " + std::string(SDL_GetError()));
+//     }
+
+//     SDL_Surface* bmpSurface = SDL_LoadBMP(bmpFilePath);
+//     if (!bmpSurface)
+//     {
+//         std::cerr << "Failed to load BMP file: " << SDL_GetError() << std::endl;
+//         SDL_Quit();
+//         throw std::runtime_error("Failed to load BMP file");
+//     }
+
+//     uint8_t* pixels = static_cast<uint8_t*>(bmpSurface->pixels);
+
+//     const int pitch = bmpSurface->pitch;
+//     std::vector<uint8_t> pixelData(pitch * bmpSurface->h);
+//     for (int y = 0; y < bmpSurface->h; y++)
+//     {
+//         memcpy(&pixelData[y * pitch], &pixels[y * pitch], pitch);
+//     }
+
+//     const int pixelsPerLane = 32 / bmpSurface->format->BytesPerPixel;
+//     const int lanes = bmpSurface->w / pixelsPerLane;
+
+//     for (int y = 0; y < bmpSurface->h; y++)
+//     {
+//         for (int lane = 0; lane < lanes; lane++)
+//         {
+//             __m256i pixelColors = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(&pixelData[y * pitch + lane * pixelsPerLane * bmpSurface->format->BytesPerPixel]));
+
+//             __m256i compareResult = _mm256_cmpeq_epi8(pixelColors, _mm256_setzero_si256());
+
+//             uint32_t mask = _mm256_movemask_epi8(compareResult);
+
+//             for (int i = 0; i < pixelsPerLane; i++)
+//             {
+//                 if ((mask & (1 << (i * bmpSurface->format->BytesPerPixel))) == 0)
+//                 {
+//                     solver->setGeo(lane * pixelsPerLane + i, 600 - y, GEO_SOLID);
+//                 }
+//             }
+//         }
+//     }
+
+//     SDL_FreeSurface(bmpSurface);
+//     SDL_Quit();
+//     std::cout << "Finished reading solid geometry from BMP file." << std::endl;
+// }
+
+
+
+
+
 void Visualizer::mouseMotionCallback(GLFWwindow* window, double xpos, double ypos)
 {
     if( !isMouseButtonPressed ) return;
@@ -322,6 +526,8 @@ void Visualizer::mouseMotionCallback(GLFWwindow* window, double xpos, double ypo
 
 void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+    const char* charFilePath = nullptr;
+    std::string filePath;
     std::stringstream titleString;
     char * title = new char [250];
     const char* titleC=title;
@@ -554,7 +760,49 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
 
             break;
 
-        case GLFW_KEY_T:
+            // case GLFW_KEY_Q:
+            //     solver->scaleSolidGeometry(0.9);
+            //     break;
+
+            // case GLFW_KEY_X:
+            //     solver->scaleSolidGeometry(1.1);
+            //     break;
+
+            case GLFW_KEY_Q:
+            {
+                std::string filePath;
+                std::cout << "Enter the path to the BMP file: ";
+                std::cin >> filePath;
+    
+                try
+                {
+                    readSolidGeometryFromBMP(filePath.c_str(), solver);
+                }
+                catch (const std::exception &e)
+                {
+                    std::cerr << "Error: " << e.what() << std::endl;
+                    // Handle the error as needed
+                }
+            }
+            break;
+            // case GLFW_KEY_Q:
+            
+            
+                
+            //     std::cout << "Enter the path to the BMP file: ";
+                
+            //     std::cin >> filePath;
+            //     charFilePath = filePath.c_str();
+
+            //      if (charFilePath != nullptr)
+            //     {
+            //         readSolidGeometryFromBMP(charFilePath, solver);
+            //     }
+        
+            
+            // break;
+
+            case GLFW_KEY_T:
 
             {
                 solver->setGeo(50, 270, 50, -10, GEO_SOLID);
@@ -576,7 +824,7 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
                 solver->setGeo(160, 290, 160, 250, GEO_SOLID);
                 solver->setGeo(160, 250, L,   250, GEO_SOLID);
 
-                solver->setGeoFloodFill( 300, 310, GEO_SOLID);
+                // solver->setGeoFloodFill( 300, 310, GEO_SOLID);
             }
 
             break;
@@ -598,3 +846,4 @@ uint Visualizer::getVertexBufferID()
 {
     return vertexBufferID;
 }
+

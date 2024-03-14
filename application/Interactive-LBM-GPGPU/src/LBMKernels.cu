@@ -462,3 +462,4 @@ __global__ void setGeoKernel( D2Q9Ptr f, uint nx, uint ny, uint x, uint y, char 
 
     f.geo[ nodeIdx ] = geo;
 }
+

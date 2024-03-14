@@ -21,5 +21,8 @@ if(APPLE)
     # GLFW (available in source code with CMake build files)
     target_link_libraries(${targetName} "${GLFW_BIN_PATH}/libglfw3.a")
 else()
-    target_link_libraries(${targetName} "${GLFW_BIN_PATH}/glfw3.lib")
+    target_link_libraries(${targetName} "/usr/lib/x86_64-linux-gnu/libglfw.so")
+    # target_link_libraries(${targetName} 
+    # ${GLFW_LIBRARIES}
+    # ${SDL2_LIBRARIES})
 endif()

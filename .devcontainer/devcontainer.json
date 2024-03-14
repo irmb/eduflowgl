@@ -1,0 +1,14 @@
+// .devcontainer/devcontainer.json
+{
+    "name": "Your",
+    "dockerFile": "Dockerfile",
+    "settings": {
+      "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    "extensions": [
+
+    ],
+    "forwardPorts": [8080], 
+    "runArgs": ["--gpus","all"]
+  }
+  

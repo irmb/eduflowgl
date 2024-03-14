@@ -3,6 +3,8 @@
 
 #include <memory>
 #include <thrust/device_vector.h>
+// new
+#include <thrust/host_vector.h>   
 
 typedef unsigned int uint;
 
@@ -73,7 +75,7 @@ struct D2Q9Distribution
 #define GEO_VELOCITY_EQ 2
 #define GEO_VELOCITY_ZERO_EQ 3
 
-class lbmSolver
+class LBMSolver
 {
 private:
 
@@ -102,8 +104,8 @@ private:
 
 public:
 
-    lbmSolver( uint nx, uint ny, float omega, float U, float V );
-    ~lbmSolver();
+    LBMSolver( uint nx, uint ny, float omega, float U, float V );
+    ~LBMSolver();
 
     void connectVertexBuffer( uint vertexBufferID );
 
@@ -121,6 +123,7 @@ public:
 
     void scaleColorMap();
 
+
     void setGeo( uint xIdx, uint yIdx, char geo );
 
     void setGeo( uint xIdx1, uint yIdx1, uint xIdx2, uint yIdx2, char geo );
@@ -135,6 +138,8 @@ public:
 	void  setAlpha(float alpha);
 	void  setSpeed(float speed);
     void  setRefLength(uint ref);
+   
+
 
     float getU();
     float getV();
@@ -148,6 +153,8 @@ public:
     void setGeoMode( char geoMode );
     char getGeoMode();
 
+   
+
     //////////////////////////////////////////////////////////////////////////
 
     void swap( floatVecPtr& lhs, floatVecPtr& rhs );
@@ -157,6 +164,6 @@ public:
     D2Q9Ptr getDistPtr();
 };
 
-typedef std::shared_ptr<lbmSolver> lbmSolverPtr;
+typedef std::shared_ptr<LBMSolver> LBMSolverPtr;
 
 #endif

@@ -35,7 +35,7 @@ private:
     std::vector<float> vertices;
     std::vector<uint>  elements;
     
-    lbmSolverPtr solver;
+    LBMSolverPtr solver;
     
     char lbModel;
     
@@ -59,7 +59,7 @@ public:
 
     Visualizer( uint nx, uint ny,  
                 float pxPerVertex, uint timeStepsPerFrame,
-                lbmSolverPtr solver );
+                LBMSolverPtr solver );
     
     void installShaders();
     
@@ -69,9 +69,15 @@ public:
     
     void run();
 
+    
+
     void displayCall();
 
     void drawFlowField();
+
+    // void readSolidGeometryFromBMP(const char* bmpFilePath, LBMSolverPtr solver);
+
+    // void scaleSolidGeometry()
     
     // Callback Function Wrapper
     static void mouseButtonCallbackWrapper(GLFWwindow* window, int button, int action, int mods);
@@ -85,6 +91,9 @@ public:
 
     // get/set
     uint getVertexBufferID();
+    void readSolidGeometryFromBMP(const char *bmpFilePath, LBMSolverPtr solver);
+   
+
 };
 
 typedef std::shared_ptr<Visualizer> VisualizerPtr;

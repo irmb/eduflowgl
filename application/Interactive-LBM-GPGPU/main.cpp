@@ -5,7 +5,7 @@
 #include <cmath>
 
 #include "src/LBMSolver.h"
-#include "src/Visualizer.h"
+#include "src/visualizer.h"
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
         // Lref=NY*atof(argv[3]);
         //}
     }
-    lbmSolverPtr solver = std::make_shared<lbmSolver>( NX, NY, omega, U, V );
+    LBMSolverPtr solver = std::make_shared<LBMSolver>( NX, NY, omega, U, V );
 
     solver->initializeDistributions();
 

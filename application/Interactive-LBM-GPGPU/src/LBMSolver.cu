@@ -13,8 +13,10 @@
 
 #include <queue>
 
-#include "lbmKernels.cuh"
+#include "LBMKernels.cuh"
 #include "colorMap.cuh"
+
+#include <cmath>
 
 #define THREADS_PER_BLOCK 8
 
@@ -22,7 +24,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-lbmSolver::lbmSolver( uint nx, uint ny, float omega, float U, float V )
+LBMSolver::LBMSolver( uint nx, uint ny, float omega, float U, float V )
     : nx(nx), ny(ny), omega(omega), U(U), V(V), lbModel('c'), geoMode('w')
 {
 	this->speed = sqrtf(U * U + V * V);
@@ -57,23 +59,34 @@ lbmSolver::lbmSolver( uint nx, uint ny, float omega, float U, float V )
     checkCudaErrors( cudaMemcpyToSymbol( colorMapDeviceB, colorMapHostB, 36*sizeof(float) ) );
 }
 
-lbmSolver::~lbmSolver()
+LBMSolver::~LBMSolver()
 {
 }
-
-void lbmSolver::connectVertexBuffer(uint vertexBufferID)
+void LBMSolver::connectVertexBuffer(uint vertexBufferID)
 {
-    // register the OpenGL vertex Buffer within CUDA
-    checkCudaErrors( cudaGraphicsGLRegisterBuffer(&this->glVertexBufferResource, 
-                                                  vertexBufferID, 
-                                                  cudaGraphicsMapFlagsNone) );
+    cudaError_t cudaStatus = cudaGraphicsGLRegisterBuffer(&this->glVertexBufferResource, 
+                                                          vertexBufferID, 
+                                                          cudaGraphicsMapFlagsNone);
+    if (cudaStatus != cudaSuccess) {
+        fprintf(stderr, "cudaGraphicsGLRegisterBuffer failed: %s\n", cudaGetErrorString(cudaStatus));
+        // Additional error handling if necessary
+    }
 }
 
+// void LBMSolver::connectVertexBuffer(uint vertexBufferID)
+// {
+//     // register the OpenGL vertex Buffer within CUDA
+//     checkCudaErrors( cudaGraphicsGLRegisterBuffer(&this->glVertexBufferResource, 
+//                                                   vertexBufferID, 
+//                                                   cudaGraphicsMapFlagsNone) );
+    
+// }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void lbmSolver::initializeDistributions()
+void LBMSolver::initializeDistributions()
 {
     dim3 threads( THREADS_PER_BLOCK, THREADS_PER_BLOCK );
     dim3 blocks ( ( this->nx +  THREADS_PER_BLOCK - 1 ) / THREADS_PER_BLOCK,
@@ -91,7 +104,7 @@ void lbmSolver::initializeDistributions()
     scaleColorMap();
 }
 
-void lbmSolver::initializeGeo()
+void LBMSolver::initializeGeo()
 {
     dim3 threads( THREADS_PER_BLOCK, THREADS_PER_BLOCK );
     dim3 blocks ( ( this->nx +  THREADS_PER_BLOCK - 1 ) / THREADS_PER_BLOCK,
@@ -102,7 +115,7 @@ void lbmSolver::initializeGeo()
     scaleColorMap();
 }
 
-void lbmSolver::collision()
+void LBMSolver::collision()
 {
     dim3 threads( THREADS_PER_BLOCK, THREADS_PER_BLOCK );
     dim3 blocks ( ( this->nx +  THREADS_PER_BLOCK - 1 ) / THREADS_PER_BLOCK,
@@ -121,7 +134,7 @@ void lbmSolver::collision()
     swap( f.fpn, f.fnp );
 }
 
-void lbmSolver::postProcessing( char type )
+void LBMSolver::postProcessing( char type )
 {
     this->computeMacroscopicQuantities();
 
@@ -156,7 +169,7 @@ void lbmSolver::postProcessing( char type )
     getLastCudaError("cudaGraphicsUnmapResources failed");
 }
 
-void lbmSolver::computeMacroscopicQuantities()
+void LBMSolver::computeMacroscopicQuantities()
 {
     dim3 threads( THREADS_PER_BLOCK, THREADS_PER_BLOCK );
     dim3 blocks ( ( this->nx +  THREADS_PER_BLOCK - 1 ) / THREADS_PER_BLOCK,
@@ -166,7 +179,7 @@ void lbmSolver::computeMacroscopicQuantities()
     getLastCudaError("postProcessingMacroscopicQuantitiesKernel failed.");
 }
 
-void lbmSolver::scaleColorMap()
+void LBMSolver::scaleColorMap()
 {
     this->computeMacroscopicQuantities();
 
@@ -181,7 +194,7 @@ void lbmSolver::scaleColorMap()
     std::cout << "Velocity = ( " << this->minVelocity << ", " << this->maxVelocity << " )" << std::endl;
 }
 
-void lbmSolver::setGeo(uint xIdx, uint yIdx, char geo)
+void LBMSolver::setGeo(uint xIdx, uint yIdx, char geo)
 {
     dim3 threads ( 2, 2 );
 
@@ -193,7 +206,7 @@ void lbmSolver::setGeo(uint xIdx, uint yIdx, char geo)
     setGeoKernel<<<1, threads>>>( this->getDistPtr(), this->nx, this->ny, xIdx, yIdx, geo );
 }
 
-void lbmSolver::setGeo(uint xIdx1, uint yIdx1, uint xIdx2, uint yIdx2, char geo)
+void LBMSolver::setGeo(uint xIdx1, uint yIdx1, uint xIdx2, uint yIdx2, char geo)
 {
     int dxIdx = xIdx2 - xIdx1;
     int dyIdx = yIdx2 - yIdx1;
@@ -204,8 +217,10 @@ void lbmSolver::setGeo(uint xIdx1, uint yIdx1, uint xIdx2, uint yIdx2, char geo)
             float xInc = ( dxIdx != 0 )?( float(dxIdx) / float( abs(dxIdx) ) ):(0);
             float yInc = ( dxIdx != 0 )?( float(dyIdx) / float( abs(dxIdx) ) ):(0);
             
-            int x = int(xIdx1) + float(idx) * xInc;
-            int y = int(yIdx1) + float(idx) * yInc;
+            // int x = int(xIdx1) + float(idx) * xInc;
+            // int y = int(yIdx1) + float(idx) * yInc;
+            float x = xIdx1 + static_cast<float>(idx) * xInc;
+            float y = yIdx1 + static_cast<float>(idx) * yInc;
 
             this->setGeo(x,y, geo);
         }
@@ -215,15 +230,17 @@ void lbmSolver::setGeo(uint xIdx1, uint yIdx1, uint xIdx2, uint yIdx2, char geo)
             float xInc = ( dyIdx != 0 )?( float(dxIdx) / float( abs(dyIdx) ) ):(0);
             float yInc = ( dyIdx != 0 )?( float(dyIdx) / float( abs(dyIdx) ) ):(0);
 
-            int x = int(xIdx1) + float(idx) * xInc;
-            int y = int(yIdx1) + float(idx) * yInc;
+            // int x = int(xIdx1) + float(idx) * xInc;
+            // int y = int(yIdx1) + float(idx) * yInc;
+            float x = xIdx1 + static_cast<float>(idx) * xInc;
+            float y = yIdx1 + static_cast<float>(idx) * yInc;
 
             this->setGeo(x,y, geo);
         }
     }
 }
 
-void lbmSolver::setGeoFloodFill(uint xIdx, uint yIdx, char geo)
+void LBMSolver::setGeoFloodFill(uint xIdx, uint yIdx, char geo)
 {
     // based on
     // https://stackoverflow.com/questions/30608448/flood-fill-recursive-stack-overflow
@@ -261,111 +278,125 @@ void lbmSolver::setGeoFloodFill(uint xIdx, uint yIdx, char geo)
 }
 
 
-void lbmSolver::setNu(float nu)
+void LBMSolver::setNu(float nu)
 {
     if( nu < 1.0e-8f ) nu = 1.0e-8f;
     if( nu > 0.1f )     nu = 0.1f;
     this->omega = 1.0f / ( 3.0f * nu + 0.5f );
 }
 
-float lbmSolver::getNu()
+float LBMSolver::getNu()
 {
     return ( 1.0f / this->omega - 0.5f ) / 3.0f;
 }
 
-void lbmSolver::setU(float U)
+void LBMSolver::setU(float U)
 {
     if( U >  0.1f ) U =  0.1f;
     if( U < -0.1f ) U = -0.1f;
     this->U = U;
 }
 
-void lbmSolver::setV(float V)
+void LBMSolver::setV(float V)
 {
     if( V >  0.1f ) V =  0.1f;
     if( V < -0.1f ) V = -0.1f;
     this->V = V;
 }
 
-void lbmSolver::setAlpha(float alpha)
+void LBMSolver::setAlpha(float alpha)
 {
 	this->alpha = alpha;
 }
 
-void lbmSolver::setSpeed(float speed)
+void LBMSolver::setSpeed(float speed)
 {
 	this->speed = speed;
 	setU(speed*cosf(alpha));
 	setV(speed*sinf(alpha));
 }
 
-void lbmSolver::setRefLength(uint ref)
+void LBMSolver::setRefLength(uint ref)
 {
 	this->refLength = ref;
 }
 
-float lbmSolver::getU()
+float LBMSolver::getU()
 {
     return this->U;
 }
 
-float lbmSolver::getV()
+float LBMSolver::getV()
 {
     return this->V;
 }
 
-float lbmSolver::getAlpha()
+float LBMSolver::getAlpha()
 {
 	return this->alpha;
 }
 
-float lbmSolver::getSpeed()
+float LBMSolver::getSpeed()
 {
 	return this->speed;
 }
 
-uint lbmSolver::getRefLength()
+uint LBMSolver::getRefLength()
 {
 	return this->refLength;
 }
 
-void lbmSolver::setLBModel(char lbModel)
+void LBMSolver::setLBModel(char lbModel)
 {
     this->lbModel = lbModel;
 }
 
-char lbmSolver::getLBModel()
+char LBMSolver::getLBModel()
 {
     return this->lbModel;
 }
 
-void lbmSolver::setGeoMode(char geoMode)
+void LBMSolver::setGeoMode(char geoMode)
 {
     this->geoMode = geoMode;
 }
 
-char lbmSolver::getGeoMode()
+char LBMSolver::getGeoMode()
 {
     return this->geoMode;
 }
 
+// charVec LBMSolver::getSolidPoints() const
+// {
+//     const charVec& geometry = *this->f.geo;
+//     charVec solidPoints;
+
+//     for (char point : geometry) {
+//         if (point == GEO_SOLID) {
+//             solidPoints.push_back(GEO_SOLID);
+//         }
+//     }
+
+//     return solidPoints;
+// }
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void lbmSolver::swap( floatVecPtr& lhs, floatVecPtr& rhs )
+void LBMSolver::swap( floatVecPtr& lhs, floatVecPtr& rhs )
 {
     floatVecPtr tmp = lhs;
     lhs = rhs;
     rhs = tmp;
 }
 
-uint lbmSolver::c2i( uint xIdx, uint yIdx )
+uint LBMSolver::c2i( uint xIdx, uint yIdx )
 {
     return yIdx * this->nx + xIdx;
 }
 
-D2Q9Ptr lbmSolver::getDistPtr()
+D2Q9Ptr LBMSolver::getDistPtr()
 {
     D2Q9Ptr distPtr;
 
@@ -385,3 +416,121 @@ D2Q9Ptr lbmSolver::getDistPtr()
 
     return distPtr;
 }
+
+// void LBMSolver::scaleSolidGeometry(float scaleFactor) {
+//     // Iterate over the solid geometry and scale the coordinates
+//     for (uint yIdx = 0; yIdx < ny; yIdx++) {
+//         for (uint xIdx = 0; xIdx < nx; xIdx++) {
+//             if (geo[yIdx * nx + xIdx] == GEO_SOLID) {
+//                 // Scale the coordinates
+//                 float scaledX = scaleFactor * static_cast<float>(xIdx);
+//                 float scaledY = scaleFactor * static_cast<float>(yIdx);
+
+//                 // Update the geometry
+//                 setGeo(xIdx, yIdx, GEO_FLUID);  // Reset the original position
+//                 setGeo(static_cast<uint>(scaledX), static_cast<uint>(scaledY), GEO_SOLID);
+//             }
+//         }
+//     }
+// }
+
+// void LBMSolver::scaleSolidGeometry(float scaleFactor) {
+//     // Create a copy of the original geometry
+//     charVecHost originalGeo = *this->f.geo;
+
+//     // Iterate over the solid geometry and scale the coordinates
+//     initializeGeo();
+//     for (uint yIdx = 0; yIdx < ny; yIdx++) {
+//         for (uint xIdx = 0; xIdx < nx; xIdx++) {
+//             if (originalGeo[yIdx * nx + xIdx] == GEO_SOLID) {
+//                 // Scale the coordinates
+//                 float scaledX = scaleFactor * static_cast<float>(xIdx);
+//                 float scaledY = scaleFactor * static_cast<float>(yIdx);
+                
+
+//                 // Update the geometry
+//                 // setGeo(xIdx, yIdx, GEO_FLUID);  // Reset the original position
+                
+//                 setGeo(static_cast<uint>(scaledX), static_cast<uint>(scaledY), GEO_SOLID);
+//             }
+//         }
+//     }
+// }
+
+
+// ...
+
+// void LBMSolver::scaleSolidGeometry(float scaleFactor) {
+//     // Create a copy of the original geometry
+//     charVecHost originalGeo = *this->f.geo;
+
+//     // Iterate over the solid geometry and scale the coordinates
+//     initializeGeo();
+//     for (uint yIdx = 0; yIdx < ny; yIdx++) {
+//         for (uint xIdx = 0; xIdx < nx; xIdx++) {
+//             if (originalGeo[yIdx * nx + xIdx] == GEO_SOLID) {
+//                 // Linear interpolation for scaling the coordinates
+//                 float scaledX = scaleFactor * static_cast<float>(xIdx);
+//                 float scaledY = scaleFactor * static_cast<float>(yIdx);
+
+//                 // Interpolate between the original and scaled positions
+//                 float interpX = (1.0 - scaleFactor) * static_cast<float>(xIdx) + scaleFactor * scaledX;
+//                 float interpY = (1.0 - scaleFactor) * static_cast<float>(yIdx) + scaleFactor * scaledY;
+
+//                 // Update the geometry
+//                 setGeo(static_cast<uint>(interpX), static_cast<uint>(interpY), GEO_SOLID);
+//             }
+//         }
+//     }
+// }
+// Move the lerp function outside of scaleSolidGeometry
+// Move the lerp function outside of scaleSolidGeometry and declare as a device function
+
+
+// __device__ float lerp(float a, float b, float t) {
+//     return a + t * (b - a);
+// }
+
+// // Define a CUDA kernel for scaling solid geometry
+// __global__ void scaleSolidGeometryKernel(char* geo, uint nx, uint ny, float scaleFactor) {
+//     uint xIdx = blockIdx.x * blockDim.x + threadIdx.x;
+//     uint yIdx = blockIdx.y * blockDim.y + threadIdx.y;
+
+//     if (xIdx < nx && yIdx < ny) {
+//         if (geo[yIdx * nx + xIdx] == GEO_SOLID) {
+//             // Scale the coordinates using the device function lerp
+//             float scaledX = lerp(static_cast<float>(xIdx), scaleFactor * static_cast<float>(xIdx), scaleFactor);
+//             float scaledY = lerp(static_cast<float>(yIdx), scaleFactor * static_cast<float>(yIdx), scaleFactor);
+
+//             // Update the geometry
+//             geo[static_cast<uint>(scaledY) * nx + static_cast<uint>(scaledX)] = GEO_SOLID;
+//         }
+//     }
+// }
+
+// // Update scaleSolidGeometry to launch the kernel
+// void LBMSolver::scaleSolidGeometry(float scaleFactor) {
+//     // Create a copy of the original geometry
+//     charVecHost originalGeo = *this->f.geo;
+
+//     // Upload originalGeo to device
+//     char* d_originalGeo;
+//     cudaMalloc((void**)&d_originalGeo, originalGeo.size() * sizeof(char));
+//     cudaMemcpy(d_originalGeo, originalGeo.data(), originalGeo.size() * sizeof(char), cudaMemcpyHostToDevice);
+
+//     // Calculate grid and block dimensions
+//     dim3 threadsPerBlock(16, 16);
+//     dim3 numBlocks((nx + threadsPerBlock.x - 1) / threadsPerBlock.x, (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
+
+//     // Launch the kernel
+//     scaleSolidGeometryKernel<<<numBlocks, threadsPerBlock>>>(d_originalGeo, nx, ny, scaleFactor);
+//     cudaDeviceSynchronize();
+
+//     // Download the updated geometry back to host
+//     cudaMemcpy(originalGeo.data(), d_originalGeo, originalGeo.size() * sizeof(char), cudaMemcpyDeviceToHost);
+//     *this->f.geo = originalGeo;
+
+//     // Free device memory
+//     cudaFree(d_originalGeo);
+// }
+
