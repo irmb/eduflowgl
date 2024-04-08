@@ -28,10 +28,6 @@ stages:
   - build
   - test
 
-# build:
-#   tags:
-#     - gpu
-#     - linux
   stage: build
   script:
     - cmake --version
