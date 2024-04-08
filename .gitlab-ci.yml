@@ -3,13 +3,17 @@ image: fahad471/glwnd-x:latest
 # Define stages for the CI pipeline
 stages:
   - build
+  - test
 
-
-build:
+  build:
   tags:
     - gpu
     - linux
 
+
+
+
+build:
   stage: build
   script:
     - cmake --version
@@ -19,3 +23,12 @@ build:
     - cd build
     - cmake ..
     - make
+  artifacts:
+    paths:
+    - build/
+    expire_in: 1 hour
+
+    build:
+  stage: test
+  script:
+  
