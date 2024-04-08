@@ -56,5 +56,3 @@ test:
   script:
     - cd build/bin
     - ./Interactive-LBM-GPGPU test 0.00001
-  dependencies:
-    - build
