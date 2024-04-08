@@ -2,17 +2,20 @@ image: fahad471/glwnd-x:latest
 
 # Define stages for the CI pipeline
 stages:
-  - build
+   - build
   # - test
 
-tags:
-  - gpu
-  - linux
+# tags:
+#   - gpu
+#   - linux
 
 
 
 
   build:
+    tags:
+      - gpu
+      - linux
     stage: build
     script:
       - cmake --version
