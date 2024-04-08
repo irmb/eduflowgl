@@ -112,7 +112,7 @@ float Commands::compareVelocityProfiles(const std::vector<float>& simulationData
    
     if (simulationData.size() != benchmarkData.size()) {
         std::cerr << "Error: Data sizes do not match." << std::endl;
-        return -1.0;
+        return 10.0;
     }
 
     
