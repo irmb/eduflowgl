@@ -16,6 +16,7 @@ stages:
     tags:
       - gpu
       - linux
+      
     stage: build
     script:
       - cmake --version
