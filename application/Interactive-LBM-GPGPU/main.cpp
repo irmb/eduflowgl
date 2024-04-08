@@ -72,9 +72,11 @@ int runTest(float threshold) {
     float rmse = Commands::compareVelocityProfiles(solver->getVelocityData(),Commands::readVelocityProfileFromVTK("benchmark_data.vtk"));
     if (rmse < threshold)
     {
+        std::cout << "RMSE greater than threshold Test Failed ..."<< std::endl;
         return 0;
     }
     else
+    std::cout << "RMSE within threshold Test passed ..."<< std::endl;
     return 1;
     
    
