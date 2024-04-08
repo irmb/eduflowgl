@@ -28,15 +28,14 @@ stages:
   - build
   - test
 
-build:
-  tags:
-    - gpu
-    - linux
+# build:
+#   tags:
+#     - gpu
+#     - linux
   stage: build
   script:
     - cmake --version
     - nvcc --version
-    - nvidia-smi
     - mkdir build
     - cd build
     - cmake ..
@@ -54,5 +53,6 @@ test:
     - linux
   stage: test
   script:
+    - nvidia-smi
     - cd build/bin
     - ./Interactive-LBM-GPGPU test 0.00001
