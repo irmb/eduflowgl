@@ -28,6 +28,10 @@ stages:
   - build
   - test
 
+build:
+  tags:
+    - linux
+
   stage: build
   script:
     - cmake --version
