@@ -43,6 +43,11 @@ build:
     - make
     - cp ../benchmark_data.vtk ./bin/benchmark_data.vtk
 
+  artifacts:
+    paths:
+      - build/
+    expire_in: 1 hour  
+
 test:
   tags:
     - gpu
@@ -51,3 +56,5 @@ test:
   script:
     - cd build/bin
     - ./Interactive-LBM-GPGPU test 0.00001
+  dependencies:
+    - build
