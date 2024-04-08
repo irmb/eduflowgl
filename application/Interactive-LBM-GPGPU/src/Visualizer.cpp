@@ -322,103 +322,6 @@ void Visualizer::mouseButtonCallback(GLFWwindow* window, int button, int action,
 }
 
 
-// void Visualizer::captureScreenshot() {
-//     // Initialize SDL
-//     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-//         std::cerr << "SDL_Init failed: " << SDL_GetError() << std::endl;
-//         return;
-//     }
-
-//     // Get the size of the window
-//     int width, height;
-//     glfwGetFramebufferSize(gWindow, &width, &height);
-//     std::cout << height << " " << width << std::endl;
-
-
-//     // Allocate memory for the pixel data
-//     unsigned char* pixels = new unsigned char[width * height * 3];
-
-//     // Read pixel data from the framebuffer
-//     glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels);
-
-//     // Create a filename for the screenshot
-//     time_t now = time(0);
-//     tm* ltm = localtime(&now);
-//     char filename[100];
-//     sprintf(filename, "screenshot_%d-%d-%d_%d-%d-%d.png", 1900 + ltm->tm_year, 1 + ltm->tm_mon, ltm->tm_mday, ltm->tm_hour, ltm->tm_min, ltm->tm_sec);
-
-//     // Create a SDL surface
-//     SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(pixels, width, height, 24, width * 3, 0xFF0000, 0x00FF00, 0x0000FF, 0);
-
-//     // Save surface to an image file
-//     if (SDL_SaveBMP(surface, filename) != 0) {
-//         std::cerr << "SDL_SaveBMP failed: " << SDL_GetError() << std::endl;
-//         SDL_FreeSurface(surface);
-//         return;
-//     }
-
-//     // Free allocated memory and SDL surface
-//     delete[] pixels;
-//     SDL_FreeSurface(surface);
-
-//     std::cout << "Screenshot captured and saved as " << filename << std::endl;
-
-//     // Quit SDL
-//     SDL_Quit();
-// }
-
-// void Visualizer::readSolidGeometryFromBMP(const char* bmpFilePath, LBMSolverPtr solver)
-// {
-//     std::cout << "Reading solid geometry from BMP file: " << bmpFilePath << std::endl;
-
-//     if (SDL_Init(SDL_INIT_VIDEO) != 0)
-//     {
-//         throw std::runtime_error("SDL_Init failed: " + std::string(SDL_GetError()));
-//     }
-
-//     SDL_Surface* bmpSurface = SDL_LoadBMP(bmpFilePath);
-//     if (!bmpSurface)
-//     {
-//         std::cerr << "Failed to load BMP file: " << SDL_GetError() << std::endl;
-//         SDL_Quit();
-//         throw std::runtime_error("Failed to load BMP file");
-//     }
-
-    
-//     uint8_t* pixels = static_cast<uint8_t*>(bmpSurface->pixels);
-
-    
-//     const int pitch = bmpSurface->pitch;
-//     std::vector<uint8_t> pixelData(pitch * bmpSurface->h);
-//     for (int y = 0; y < bmpSurface->h; y++)
-//     {
-//         memcpy(&pixelData[y * pitch], &pixels[y * pitch], pitch);
-//     }
-
-//     for (int y = 0; y < bmpSurface->h; y++)
-//     {
-//         for (int x = 0; x < bmpSurface->w; x++)
-//         {
-            
-//             uint8_t pixelColor = pixelData[y * pitch + x * bmpSurface->format->BytesPerPixel];
-
-            
-//             // std::cout << "Pixel at (" << x << ", " << y << ") has color: " << static_cast<int>(pixelColor) << std::endl;
-
-//             if (pixelColor != 0)
-//             {
-                
-//                 solver->setGeo(x, 600 - y, GEO_SOLID);
-//             }
-//         }
-//     }
-
-    
-//     SDL_FreeSurface(bmpSurface);
-//     SDL_Quit();
-//     std::cout << "Finished reading solid geometry from BMP file." << std::endl;
-// }
-
 
 
 
@@ -693,22 +596,12 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
 
             break;
 
-            // case GLFW_KEY_Q:
-            //     solver->scaleSolidGeometry(0.9);
-            //     break;
-
-            // case GLFW_KEY_X:
-            //     solver->scaleSolidGeometry(1.1);
-            //     break;
 
             case GLFW_KEY_Q:
             {
-    //             float vmid = solver->getVelocity(267987);
-    // std::cout <<vmid;
-                std::string filePath = "example.bmp";
-                // std::cout << "Enter the path to the BMP file: ";
-                // std::cin >> filePath;
-    
+  
+                std::string filePath = "geometry.bmp";
+  
                 try
                 {
                     Commands::readSolidGeometryFromBMP(filePath.c_str(), solver);
@@ -723,13 +616,7 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
 
             case GLFW_KEY_J:
              
-            // solver->writeFlowFieldToVTK("flow_field_data.vtk");
-            // Commands::writeFlowFieldToVTK("output.vtk", this->nx, this->ny, solver->getVelocity(), solver->getPressure());
-            // std::cout << solver->getVelocity()[1];
-            // std::cout << solver->getPressure()[1];
-            // std::cout << solver->c2i(2,4);
-           
-            // std::cout << solver->getVelocityData()[1];
+          
             Commands::writeFlowFieldToVTK("flow_field_data.vtk", this->nx, this->ny,solver->getVelocityData() , solver->getPressureData());
        
         

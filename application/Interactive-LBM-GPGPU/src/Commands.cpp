@@ -91,8 +91,7 @@ void Commands::readSolidGeometryFromBMP(const char* bmpFilePath, LBMSolverPtr so
             
             uint8_t pixelColor = pixelData[y * pitch + x * bmpSurface->format->BytesPerPixel];
 
-            
-            // std::cout << "Pixel at (" << x << ", " << y << ") has color: " << static_cast<int>(pixelColor) << std::endl;
+
 
             if (pixelColor != 0)
             {

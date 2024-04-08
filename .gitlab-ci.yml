@@ -1,6 +1,6 @@
 image: fahad471/glwnd-x:latest
 
-# Define stages for the CI pipeline
+
 stages:
   - build
 
