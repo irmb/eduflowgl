@@ -20,4 +20,6 @@ build:
     - cmake ..
     - make
     - cp ../benchmark_data.vtk ./bin/benchmark_data.vtk
+    - cd bin
+    - ls
     - bin/Interactive-LBM-GPGPU test 0.00001
