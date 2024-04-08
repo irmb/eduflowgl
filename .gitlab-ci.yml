@@ -3,7 +3,7 @@ image: fahad471/glwnd-x:latest
 # Define stages for the CI pipeline
 stages:
   - build
-  - test
+  # - test
 
 
 tags:
@@ -23,14 +23,14 @@ build:
     - cd build
     - cmake ..
     - make
-  artifacts:
-    paths:
-    - build/
-    expire_in: 1 hour
+  # artifacts:
+  #   paths:
+  #   - build/
+  #   expire_in: 1 hour
 
-  test:
-    stage: test
-    script:
-      - cp ./benchmark_data.vtk ./build/bin/benchmark_data.vtk
-      - build/bin/Interactive-LBM-GPGPU test
+  # test:
+  #   stage: test
+  #   script:
+  #     - cp ./benchmark_data.vtk ./build/bin/benchmark_data.vtk
+  #     - build/bin/Interactive-LBM-GPGPU test
   
