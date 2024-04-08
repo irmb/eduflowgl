@@ -5,10 +5,10 @@ stages:
   - build
   - test
 
-  build:
-  tags:
-    - gpu
-    - linux
+
+tags:
+  - gpu
+  - linux
 
 
 
@@ -28,7 +28,9 @@ build:
     - build/
     expire_in: 1 hour
 
-    build:
-  stage: test
-  script:
+  test:
+    stage: test
+    script:
+      - cp ./benchmark_data.vtk ./build/bin/benchmark_data.vtk
+      - build/bin/Interactive-LBM-GPGPU test
   

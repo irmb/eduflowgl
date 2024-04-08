@@ -91,7 +91,6 @@ public:
 
     // get/set
     uint getVertexBufferID();
-    void readSolidGeometryFromBMP(const char *bmpFilePath, LBMSolverPtr solver);
    
 
 };

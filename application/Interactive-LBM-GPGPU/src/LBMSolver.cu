@@ -17,6 +17,9 @@
 #include "colorMap.cuh"
 
 #include <cmath>
+#include <fstream>
+#include <thrust/device_vector.h>
+
 
 #define THREADS_PER_BLOCK 8
 
@@ -417,120 +420,78 @@ D2Q9Ptr LBMSolver::getDistPtr()
     return distPtr;
 }
 
-// void LBMSolver::scaleSolidGeometry(float scaleFactor) {
-//     // Iterate over the solid geometry and scale the coordinates
-//     for (uint yIdx = 0; yIdx < ny; yIdx++) {
-//         for (uint xIdx = 0; xIdx < nx; xIdx++) {
-//             if (geo[yIdx * nx + xIdx] == GEO_SOLID) {
-//                 // Scale the coordinates
-//                 float scaledX = scaleFactor * static_cast<float>(xIdx);
-//                 float scaledY = scaleFactor * static_cast<float>(yIdx);
+float LBMSolver::getVelocity(uint index)
+{
+    thrust::device_vector<float> velocity = *f.velocity;
+    return velocity[index];
+}
 
-//                 // Update the geometry
-//                 setGeo(xIdx, yIdx, GEO_FLUID);  // Reset the original position
-//                 setGeo(static_cast<uint>(scaledX), static_cast<uint>(scaledY), GEO_SOLID);
-//             }
+float LBMSolver::getPressure(uint index)
+{
+    thrust::device_vector<float> pressure = *f.pressure;
+    return pressure[index];
+}
+ std::vector<float> LBMSolver::getVelocityData() { 
+    thrust::device_vector<float>& velocityData = *f.velocity;
+    std::vector<float> velocityDataHost(velocityData.begin(), velocityData.end());
+    return velocityDataHost;
+    
+    
+     }
+     std::vector<float> LBMSolver::getPressureData() { 
+    thrust::device_vector<float>& PressureData = *f.pressure;
+    std::vector<float> PressureDataHost(PressureData.begin(), PressureData.end());
+    return PressureDataHost;
+    
+    
+     }
+
+
+
+ 
+
+// void LBMSolver::writeFlowFieldToVTK(const std::string& filename) {
+//     std::ofstream outputFile(filename);
+
+//     // Check if the file opened successfully
+//     if (!outputFile.is_open()) {
+//         std::cerr << "Error: Unable to open file " << filename << std::endl;
+//         return;
+//     }
+
+//     // Write VTK header
+//     outputFile << "# vtk DataFile Version 3.0" << std::endl;
+//     outputFile << "LBM Flow Field Data" << std::endl;
+//     outputFile << "ASCII" << std::endl;
+//     outputFile << "DATASET STRUCTURED_POINTS" << std::endl;
+//     outputFile << "DIMENSIONS " << nx << " " << ny << " 1" << std::endl;
+//     outputFile << "ORIGIN 0 0 0" << std::endl;
+//     outputFile << "SPACING 1 1 1" << std::endl;
+//     outputFile << "POINT_DATA " << nx * ny << std::endl;
+//     outputFile << "VECTORS Velocity float" << std::endl;
+
+//     // Write velocity data
+//     thrust::device_vector<float>& velocity = *f.velocity;
+//     for (uint yIdx = 0; yIdx < ny; ++yIdx) {
+//         for (uint xIdx = 0; xIdx < nx; ++xIdx) {
+//             uint index = c2i(xIdx, yIdx);
+//             outputFile << velocity[index] << " 0 0" << std::endl; // Assuming 2D flow field
 //         }
 //     }
-// }
 
-// void LBMSolver::scaleSolidGeometry(float scaleFactor) {
-//     // Create a copy of the original geometry
-//     charVecHost originalGeo = *this->f.geo;
-
-//     // Iterate over the solid geometry and scale the coordinates
-//     initializeGeo();
-//     for (uint yIdx = 0; yIdx < ny; yIdx++) {
-//         for (uint xIdx = 0; xIdx < nx; xIdx++) {
-//             if (originalGeo[yIdx * nx + xIdx] == GEO_SOLID) {
-//                 // Scale the coordinates
-//                 float scaledX = scaleFactor * static_cast<float>(xIdx);
-//                 float scaledY = scaleFactor * static_cast<float>(yIdx);
-                
-
-//                 // Update the geometry
-//                 // setGeo(xIdx, yIdx, GEO_FLUID);  // Reset the original position
-                
-//                 setGeo(static_cast<uint>(scaledX), static_cast<uint>(scaledY), GEO_SOLID);
-//             }
+//     // Write pressure data as scalar field
+//     outputFile << "SCALARS Pressure float 1" << std::endl;
+//     outputFile << "LOOKUP_TABLE default" << std::endl;
+//     thrust::device_vector<float>& pressure = *f.pressure;
+//     for (uint yIdx = 0; yIdx < ny; ++yIdx) {
+//         for (uint xIdx = 0; xIdx < nx; ++xIdx) {
+//             uint index = c2i(xIdx, yIdx);
+//             outputFile << pressure[index] << std::endl;
 //         }
 //     }
+
+//     // Close the file
+//     outputFile.close();
+
+//     std::cout << "Flow field data has been written to " << filename << std::endl;
 // }
-
-
-// ...
-
-// void LBMSolver::scaleSolidGeometry(float scaleFactor) {
-//     // Create a copy of the original geometry
-//     charVecHost originalGeo = *this->f.geo;
-
-//     // Iterate over the solid geometry and scale the coordinates
-//     initializeGeo();
-//     for (uint yIdx = 0; yIdx < ny; yIdx++) {
-//         for (uint xIdx = 0; xIdx < nx; xIdx++) {
-//             if (originalGeo[yIdx * nx + xIdx] == GEO_SOLID) {
-//                 // Linear interpolation for scaling the coordinates
-//                 float scaledX = scaleFactor * static_cast<float>(xIdx);
-//                 float scaledY = scaleFactor * static_cast<float>(yIdx);
-
-//                 // Interpolate between the original and scaled positions
-//                 float interpX = (1.0 - scaleFactor) * static_cast<float>(xIdx) + scaleFactor * scaledX;
-//                 float interpY = (1.0 - scaleFactor) * static_cast<float>(yIdx) + scaleFactor * scaledY;
-
-//                 // Update the geometry
-//                 setGeo(static_cast<uint>(interpX), static_cast<uint>(interpY), GEO_SOLID);
-//             }
-//         }
-//     }
-// }
-// Move the lerp function outside of scaleSolidGeometry
-// Move the lerp function outside of scaleSolidGeometry and declare as a device function
-
-
-// __device__ float lerp(float a, float b, float t) {
-//     return a + t * (b - a);
-// }
-
-// // Define a CUDA kernel for scaling solid geometry
-// __global__ void scaleSolidGeometryKernel(char* geo, uint nx, uint ny, float scaleFactor) {
-//     uint xIdx = blockIdx.x * blockDim.x + threadIdx.x;
-//     uint yIdx = blockIdx.y * blockDim.y + threadIdx.y;
-
-//     if (xIdx < nx && yIdx < ny) {
-//         if (geo[yIdx * nx + xIdx] == GEO_SOLID) {
-//             // Scale the coordinates using the device function lerp
-//             float scaledX = lerp(static_cast<float>(xIdx), scaleFactor * static_cast<float>(xIdx), scaleFactor);
-//             float scaledY = lerp(static_cast<float>(yIdx), scaleFactor * static_cast<float>(yIdx), scaleFactor);
-
-//             // Update the geometry
-//             geo[static_cast<uint>(scaledY) * nx + static_cast<uint>(scaledX)] = GEO_SOLID;
-//         }
-//     }
-// }
-
-// // Update scaleSolidGeometry to launch the kernel
-// void LBMSolver::scaleSolidGeometry(float scaleFactor) {
-//     // Create a copy of the original geometry
-//     charVecHost originalGeo = *this->f.geo;
-
-//     // Upload originalGeo to device
-//     char* d_originalGeo;
-//     cudaMalloc((void**)&d_originalGeo, originalGeo.size() * sizeof(char));
-//     cudaMemcpy(d_originalGeo, originalGeo.data(), originalGeo.size() * sizeof(char), cudaMemcpyHostToDevice);
-
-//     // Calculate grid and block dimensions
-//     dim3 threadsPerBlock(16, 16);
-//     dim3 numBlocks((nx + threadsPerBlock.x - 1) / threadsPerBlock.x, (ny + threadsPerBlock.y - 1) / threadsPerBlock.y);
-
-//     // Launch the kernel
-//     scaleSolidGeometryKernel<<<numBlocks, threadsPerBlock>>>(d_originalGeo, nx, ny, scaleFactor);
-//     cudaDeviceSynchronize();
-
-//     // Download the updated geometry back to host
-//     cudaMemcpy(originalGeo.data(), d_originalGeo, originalGeo.size() * sizeof(char), cudaMemcpyDeviceToHost);
-//     *this->f.geo = originalGeo;
-
-//     // Free device memory
-//     cudaFree(d_originalGeo);
-// }
-

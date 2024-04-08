@@ -1,8 +1,7 @@
+FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04
 
-FROM nvidia/cuda:12.3.2-devel-ubuntu22.04
-
-
-
+ENV NVIDIA_VISIBLE_DEVICES ${NVIDIA_VISIBLE_DEVICES:-all}
+ENV NVIDIA_DRIVER_CAPABILITIES ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}graphics
 
 WORKDIR /app
 
@@ -32,8 +31,8 @@ RUN apt-get update && \
 
 COPY .. /app
 
-ENV NVIDIA_VISIBLE_DEVICES all
-ENV NVIDIA_DRIVER_CAPABILITIES graphics,utility,compute
+# ENV NVIDIA_VISIBLE_DEVICES all
+# ENV NVIDIA_DRIVER_CAPABILITIES graphics,utility,compute
 
 
 ENV PATH="/usr/local/cuda/bin:${PATH}"
