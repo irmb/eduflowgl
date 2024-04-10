@@ -407,6 +407,7 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
             std::cout << "Page Up:    increase time steps per frame by one" << std::endl;
             std::cout << "Page Down:  decrease time steps per frame by one" << std::endl;
 			std::cout << "0:	set 20 frames per second" << std::endl;
+            std::cout << "j:	output flow data" << std::endl;
             std::cout << "" << std::endl;
             std::cout << "================================================================================" << std::endl;
             break;
