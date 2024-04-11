@@ -369,19 +369,6 @@ char LBMSolver::getGeoMode()
     return this->geoMode;
 }
 
-// charVec LBMSolver::getSolidPoints() const
-// {
-//     const charVec& geometry = *this->f.geo;
-//     charVec solidPoints;
-
-//     for (char point : geometry) {
-//         if (point == GEO_SOLID) {
-//             solidPoints.push_back(GEO_SOLID);
-//         }
-//     }
-
-//     return solidPoints;
-// }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -445,53 +432,20 @@ float LBMSolver::getPressure(uint index)
     
     
      }
+   
 
+    char* LBMSolver::getgeoData() { 
+    thrust::device_vector<char>& geoprofile = *f.geo;
+    char* geoprofileHost = new char[600000]; 
+    thrust::copy(geoprofile.begin(), geoprofile.begin() + 600000, geoprofileHost);
+    return geoprofileHost;
+}
 
+void LBMSolver::setgeoData(const char* data) {
+    thrust::device_vector<char>& geoprofile = *f.geo;
+    geoprofile.resize(600000); 
+    thrust::copy(data, data + 600000, geoprofile.begin());
+}
 
  
 
-// void LBMSolver::writeFlowFieldToVTK(const std::string& filename) {
-//     std::ofstream outputFile(filename);
-
-//     // Check if the file opened successfully
-//     if (!outputFile.is_open()) {
-//         std::cerr << "Error: Unable to open file " << filename << std::endl;
-//         return;
-//     }
-
-//     // Write VTK header
-//     outputFile << "# vtk DataFile Version 3.0" << std::endl;
-//     outputFile << "LBM Flow Field Data" << std::endl;
-//     outputFile << "ASCII" << std::endl;
-//     outputFile << "DATASET STRUCTURED_POINTS" << std::endl;
-//     outputFile << "DIMENSIONS " << nx << " " << ny << " 1" << std::endl;
-//     outputFile << "ORIGIN 0 0 0" << std::endl;
-//     outputFile << "SPACING 1 1 1" << std::endl;
-//     outputFile << "POINT_DATA " << nx * ny << std::endl;
-//     outputFile << "VECTORS Velocity float" << std::endl;
-
-//     // Write velocity data
-//     thrust::device_vector<float>& velocity = *f.velocity;
-//     for (uint yIdx = 0; yIdx < ny; ++yIdx) {
-//         for (uint xIdx = 0; xIdx < nx; ++xIdx) {
-//             uint index = c2i(xIdx, yIdx);
-//             outputFile << velocity[index] << " 0 0" << std::endl; // Assuming 2D flow field
-//         }
-//     }
-
-//     // Write pressure data as scalar field
-//     outputFile << "SCALARS Pressure float 1" << std::endl;
-//     outputFile << "LOOKUP_TABLE default" << std::endl;
-//     thrust::device_vector<float>& pressure = *f.pressure;
-//     for (uint yIdx = 0; yIdx < ny; ++yIdx) {
-//         for (uint xIdx = 0; xIdx < nx; ++xIdx) {
-//             uint index = c2i(xIdx, yIdx);
-//             outputFile << pressure[index] << std::endl;
-//         }
-//     }
-
-//     // Close the file
-//     outputFile.close();
-
-//     std::cout << "Flow field data has been written to " << filename << std::endl;
-// }

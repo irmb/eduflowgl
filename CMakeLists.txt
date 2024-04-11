@@ -78,3 +78,4 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 #############################################################
 
 add_subdirectory(application/Interactive-LBM-GPGPU)
+

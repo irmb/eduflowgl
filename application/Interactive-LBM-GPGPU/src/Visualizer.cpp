@@ -1,5 +1,7 @@
 #include "visualizer.h"
-#include "Commands.h"
+#include "Command.h"
+#include "ReadSolidGeometryCommand.h"
+#include "writeFlowFieldToVTKCommand.h"
 
 
 #include <GL/glew.h>
@@ -26,9 +28,10 @@
 
 
 #include <ctime>
-// int count = 0;
 
-
+std::unique_ptr<Command> command;
+std::vector<std::unique_ptr<Command>> history;
+    int currentCommand = -1;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,6 +63,8 @@ void OnError(int errorCode, const char* msg) {
 
 Visualizer::Visualizer(uint nx, uint ny, float pxPerVertex, uint timeStepsPerFrame, LBMSolverPtr solver)
 {
+    
+
     this->nx          = nx;
     this->ny          = ny;
     //Visualizer::lref          = lref;
@@ -203,6 +208,9 @@ void Visualizer::generateElements()
 
 void Visualizer::run()
 {
+    
+    
+
     while(!glfwWindowShouldClose(gWindow)){
         // process pending events
         glfwPollEvents();
@@ -220,16 +228,12 @@ void Visualizer::run()
 
 void Visualizer::displayCall()
 {
-    // count= count +1;
+    
 
     for( int i = 0; i < timeStepsPerFrame; i++ )
         solver->collision();
 
-        // if (count ==20)
-        // {
-        //   Commands::writeFlowFieldToVTK("flow_field_data.vtk", this->nx, this->ny,solver->getVelocityData() , solver->getPressureData());  
-        // }
-        
+       
 
        
        
@@ -602,23 +606,41 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
             {
   
                 std::string filePath = "geometry.bmp";
+                command = std::make_unique<ReadSolidGeometryCommand>(filePath, solver);
+                command->execute();
+
+                if (currentCommand < static_cast<int>(history.size()) - 1) {
+                    history.erase(history.begin() + currentCommand + 1, history.end());
+                }
+                history.push_back(std::move(command));
+                currentCommand++;
   
-                try
-                {
-                    Commands::readSolidGeometryFromBMP(filePath.c_str(), solver);
-                }
-                catch (const std::exception &e)
-                {
-                    std::cerr << "Error: " << e.what() << std::endl;
-                   
-                }
+              
             }
+            break;
+
+             case GLFW_KEY_L:
+             
+                command = std::make_unique<writeFlowFieldToVTKCommand>("flow_field_data.vtk", this->nx, this->ny,solver->getVelocityData() , solver->getPressureData());
+                command->execute();
+                if (currentCommand < static_cast<int>(history.size()) - 1) {
+                    history.erase(history.begin() + currentCommand + 1, history.end());
+                }
+                history.push_back(std::move(command));
+                currentCommand++;
+            
+       
+        
+            
             break;
 
             case GLFW_KEY_J:
              
-          
-            Commands::writeFlowFieldToVTK("flow_field_data.vtk", this->nx, this->ny,solver->getVelocityData() , solver->getPressureData());
+                if (currentCommand >= 0 && currentCommand < static_cast<int>(history.size())) {
+                history[currentCommand]->undo();
+                currentCommand--;
+            }
+           
        
         
             

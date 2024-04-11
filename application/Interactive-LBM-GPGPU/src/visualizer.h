@@ -19,6 +19,7 @@ class Visualizer
 {
 private:
 
+    
     GLFWwindow* gWindow;
     tdogl::Program* gProgram;
     
@@ -57,6 +58,8 @@ private:
 
 public:
 
+    
+
     Visualizer( uint nx, uint ny,  
                 float pxPerVertex, uint timeStepsPerFrame,
                 LBMSolverPtr solver );
@@ -75,9 +78,6 @@ public:
 
     void drawFlowField();
 
-    // void readSolidGeometryFromBMP(const char* bmpFilePath, LBMSolverPtr solver);
-
-    // void scaleSolidGeometry()
     
     // Callback Function Wrapper
     static void mouseButtonCallbackWrapper(GLFWwindow* window, int button, int action, int mods);

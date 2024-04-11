@@ -23,7 +23,7 @@ if(WIN32)
 set(includeDirectories ${GLFW_INCLUDE_DIRS}
                        ${CMAKE_SOURCE_DIR}/3rdparty/glm
                        ${CMAKE_SOURCE_DIR}/3rdparty/SDL2-2.30.0/include
-                        ${CMAKE_SOURCE_DIR}/3rdparty/glfw-3.4.bin.WIN64/include
+                       ${CMAKE_SOURCE_DIR}/3rdparty/glfw-3.4.bin.WIN64/include
                        ${CMAKE_SOURCE_DIR}/3rdparty/glew/include
                        ${CMAKE_SOURCE_DIR}/3rdparty/CudaSampleCommon/inc) ###############
 elseif(UNIX)
