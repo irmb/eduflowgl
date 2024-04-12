@@ -310,7 +310,7 @@ void Visualizer::mouseButtonCallback(GLFWwindow* window, int button, int action,
     float x = float(xpos);
     float y = float(ypos);
 
-    std::cout << "Clicked at ( " << x << ", " << y << " )" << std::endl;
+    // std::cout << "Clicked at ( " << x << ", " << y << " )" << std::endl;
     
     int xIdx = float(nx) * float(                  x ) / float( nx*pxPerVertex ) ;
     int yIdx = float(ny) * float( ny*pxPerVertex - y ) / float( ny*pxPerVertex ) ;
@@ -338,19 +338,19 @@ void Visualizer::mouseMotionCallback(GLFWwindow* window, double xpos, double ypo
     float x = float(xpos);
     float y = float(ypos);
 
-    std::cout << "Motioned at ( " << x << ", " << y << " )" << std::endl;
+    // std::cout << "Motioned at ( " << x << ", " << y << " )" << std::endl;
     
     int xIdx = float(nx) * float(                  x ) / float( nx*pxPerVertex ) ;
     int yIdx = float(ny) * float( ny*pxPerVertex - y ) / float( ny*pxPerVertex ) ;
 
-    std::cout << "Motioned at ( " << xIdx << ", " << yIdx << " )" << std::endl;
+    // std::cout << "Motioned at ( " << xIdx << ", " << yIdx << " )" << std::endl;
 
     if( xIdx <  0 || xIdx > 1000000 ) xIdx = 0;
     if( yIdx <  0 || yIdx > 1000000 ) yIdx = 0;
     if( xIdx >= nx - 2 )              xIdx = nx - 2;
     if( yIdx >= ny - 2 )              yIdx = ny - 2;
 
-    std::cout << "Motioned at ( " << xIdx << ", " << yIdx << " )" << std::endl;
+    // std::cout << "Motioned at ( " << xIdx << ", " << yIdx << " )" << std::endl;
 
     solver->setGeo( xIdxLast, yIdxLast, xIdx, yIdx, delelteGeo? GEO_FLUID : GEO_SOLID);
 
