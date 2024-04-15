@@ -78,6 +78,9 @@ public:
 
     void drawFlowField();
 
+    // void readSolidGeometryFromBMP(const char* bmpFilePath, LBMSolverPtr solver);
+
+    // void scaleSolidGeometry()
     
     // Callback Function Wrapper
     static void mouseButtonCallbackWrapper(GLFWwindow* window, int button, int action, int mods);

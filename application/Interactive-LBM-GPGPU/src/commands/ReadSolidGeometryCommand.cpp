@@ -1,5 +1,5 @@
 #include "ReadSolidGeometryCommand.h"
-// #include "LBMSolver.h"
+
 
 #include <SDL.h>
 
@@ -56,7 +56,7 @@ void ReadSolidGeometryCommand::execute() {
     }
     catch(const std::exception& e)
     {
-        std::cerr << "Error occurred:getgeod " << e.what() << std::endl;
+        std::cerr << "Error occurred: " << e.what() << std::endl;
     }
     
     
@@ -73,13 +73,13 @@ try {
     solver->setgeoData(laststate);
     } catch (const std::exception& e) {
     
-    std::cerr << "Error occurred:setgeod " << e.what() << std::endl;
+    std::cerr << "Error occurred: " << e.what() << std::endl;
 }
 
    
     
 
-    
+   
 }
 
 void ReadSolidGeometryCommand::redo() {

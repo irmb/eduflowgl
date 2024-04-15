@@ -1,7 +1,9 @@
 #include "visualizer.h"
+// #include "Commands.h"
 #include "Command.h"
-#include "ReadSolidGeometryCommand.h"
-#include "writeFlowFieldToVTKCommand.h"
+#include "commands/ReadSolidGeometryCommand.h"
+#include "commands/writeFlowFieldToVTKCommand.h"
+#include "commands/DrawCommand.h"
 
 
 #include <GL/glew.h>
@@ -28,7 +30,7 @@
 
 
 #include <ctime>
-
+int dra;
 std::unique_ptr<Command> command;
 std::vector<std::unique_ptr<Command>> history;
     int currentCommand = -1;
@@ -228,12 +230,16 @@ void Visualizer::run()
 
 void Visualizer::displayCall()
 {
-    
+    // count= count +1;
 
     for( int i = 0; i < timeStepsPerFrame; i++ )
         solver->collision();
 
-       
+        // if (count ==20)
+        // {
+        //   Commands::writeFlowFieldToVTK("flow_field_data.vtk", this->nx, this->ny,solver->getVelocityData() , solver->getPressureData());  
+        // }
+        
 
        
        
@@ -315,14 +321,35 @@ void Visualizer::mouseButtonCallback(GLFWwindow* window, int button, int action,
     int xIdx = float(nx) * float(                  x ) / float( nx*pxPerVertex ) ;
     int yIdx = float(ny) * float( ny*pxPerVertex - y ) / float( ny*pxPerVertex ) ;
 
-    if(isMouseButtonPressed)
-        if( mods & GLFW_MOD_SHIFT )
-            solver->setGeoFloodFill( xIdx, yIdx, delelteGeo?GEO_FLUID:GEO_SOLID );
+    if(isMouseButtonPressed){
+        if( mods & GLFW_MOD_SHIFT ){
+            command = std::make_unique<DrawCommand>(solver, xIdx, yIdx, xIdxLast, yIdxLast, delelteGeo? GEO_FLUID : GEO_SOLID, 2 );
+                command->execute();
+
+              
+        }
+            
         else
-            solver->setGeo( xIdx, yIdx, delelteGeo? GEO_FLUID : GEO_SOLID);
+        {
+            command = std::make_unique<DrawCommand>(solver, xIdx, yIdx, xIdxLast, yIdxLast, delelteGeo? GEO_FLUID : GEO_SOLID, 3 );
+                command->execute();
+
+                
+                }
+if (currentCommand < static_cast<int>(history.size()) - 1) {
+                    history.erase(history.begin() + currentCommand + 1, history.end());
+                }
+                history.push_back(std::move(command));
+                currentCommand++;
+}
+
+
+    
+
 
     xIdxLast = xIdx;
     yIdxLast = yIdx;
+    
 }
 
 
@@ -352,7 +379,12 @@ void Visualizer::mouseMotionCallback(GLFWwindow* window, double xpos, double ypo
 
     // std::cout << "Motioned at ( " << xIdx << ", " << yIdx << " )" << std::endl;
 
-    solver->setGeo( xIdxLast, yIdxLast, xIdx, yIdx, delelteGeo? GEO_FLUID : GEO_SOLID);
+   
+                command = std::make_unique<DrawCommand>(solver, xIdx, yIdx, xIdxLast, yIdxLast, delelteGeo? GEO_FLUID : GEO_SOLID, 1 );
+                command->execute();
+                
+
+              
 
     geoModified = true;
 
@@ -615,7 +647,7 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
                 history.push_back(std::move(command));
                 currentCommand++;
   
-              
+             
             }
             break;
 
@@ -640,7 +672,7 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
                 history[currentCommand]->undo();
                 currentCommand--;
             }
-           
+            
        
         
             

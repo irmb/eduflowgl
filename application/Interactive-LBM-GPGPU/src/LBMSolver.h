@@ -139,7 +139,7 @@ public:
 	void  setSpeed(float speed);
     void  setRefLength(uint ref);
     void  setGeoprofile(std::vector<char>& geoprofile);
-    
+    // void writeFlowFieldToVTK(const std::string& filename);
 
 
    
@@ -160,7 +160,7 @@ public:
     float getPressure(uint index);
     std::vector<float> getVelocityData();
     std::vector<float> getPressureData();
-    
+    // std::vector<char> getgeoData();
     char* getgeoData();
 
     void setgeoData(const char *data);

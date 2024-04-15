@@ -1,7 +1,7 @@
 #ifndef WRITEFLOWFIELDTOVTKCOMMAND_H
 #define WRITEFLOWFIELDTOVTKCOMMAND_H
 
-#include "Command.h"
+#include "../Command.h"
 #include <vector>
 
 

@@ -1,8 +1,8 @@
 #ifndef READSOLIDGEOMETRYCOMMAND_H
 #define READSOLIDGEOMETRYCOMMAND_H
 
-#include "Command.h"
-#include "LBMSolver.h"
+#include "../Command.h"
+#include "../LBMSolver.h"
 
 
 
@@ -19,4 +19,4 @@ public:
     void redo() override;
 };
 
-#endif // READSOLIDGEOMETRYCOMMAND_H
+#endif 

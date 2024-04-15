@@ -8,7 +8,7 @@
 #include <string>
 #include <cmath>
 #include <cstdlib>
-#include "LBMSolver.h"
+#include "../LBMSolver.h"
 
 
 

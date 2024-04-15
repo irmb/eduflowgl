@@ -3,10 +3,9 @@
 #include <iostream>
 #include <memory>
 #include <cmath>
-#include "src/Test.h"
 #include <cstdlib>
 
-#include "src/Test.h"
+#include "src/tests/Test.h"
 #include "src/LBMSolver.h"
 #include "src/visualizer.h"
 
@@ -32,58 +31,7 @@ const float nu    = 0.1;//U * Lref / 400;
 const float omega = 2.0f / ( 6.0f * nu + 1.0f );
 
 //////////////////////////////////////////////////////////////////////////
-// int runTest(float threshold) {
-    
-//     std::cout << "Running test...\n";
-   
-//     int NX = 1000; 
-//     int NY = 600;
-//     int Lref=(12*NY)/30;
-//     const float U = 0.08f; 
-//     const float V = 0.0f;
-//     const float nu = 0.1;
-//     const float omega = 2.0f / (6.0f * nu + 1.0f);
-//     const uint timeStepsPerFrame = 300;
 
-    
-//     LBMSolverPtr solver = std::make_shared<LBMSolver>(NX, NY, omega, U, V);
-//     solver->initializeDistributions();
-//     solver->initializeGeo();
-//     solver->setRefLength(NY);
-//     int r = Lref/2;
-
-//     for( int x = -r; x <= r; x++ ){
-//         for( int y = -r; y <= r; y++ ){
-//             if( sqrt( x * x + y * y ) > r ) continue;
-//             solver->setGeo(1.9*r + x, NY/2 + y+50,GEO_SOLID);
-//         }
-//     }
-    
-//     for (int j = 0; j < 19; j++)
-//     {
-   
-    
-//         for( int i = 0; i < timeStepsPerFrame; i++ ){
-//         solver->collision();
-//         }
-//         solver->computeMacroscopicQuantities();
-         
-// }
-        
-   
-//     float rmse = Commands::compareVelocityProfiles(solver->getVelocityData(),Commands::readVelocityProfileFromVTK("benchmark_data.vtk"));
-//     if (rmse < threshold)
-//     {
-//         std::cout << "RMSE within threshold Test passed ..."<< std::endl;
-//         return 0;
-//     }
-//     else
-//     std::cout << "RMSE greater than threshold Test Failed ..."<< std::endl;
-//     return 1;
-    
-   
-    
-// }
 int main(int argc, char *argv[])
 {
     

@@ -370,6 +370,7 @@ char LBMSolver::getGeoMode()
 }
 
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -436,16 +437,17 @@ float LBMSolver::getPressure(uint index)
 
     char* LBMSolver::getgeoData() { 
     thrust::device_vector<char>& geoprofile = *f.geo;
-    char* geoprofileHost = new char[600000]; 
-    thrust::copy(geoprofile.begin(), geoprofile.begin() + 600000, geoprofileHost);
+    char* geoprofileHost = new char[geoprofile.size()]; 
+    thrust::copy(geoprofile.begin(), geoprofile.begin() + geoprofile.size(), geoprofileHost);
     return geoprofileHost;
 }
 
 void LBMSolver::setgeoData(const char* data) {
     thrust::device_vector<char>& geoprofile = *f.geo;
-    geoprofile.resize(600000); 
-    thrust::copy(data, data + 600000, geoprofile.begin());
+    geoprofile.resize(geoprofile.size()); 
+    thrust::copy(data, data + geoprofile.size(), geoprofile.begin()); 
 }
 
  
+
 
