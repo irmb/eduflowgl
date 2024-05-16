@@ -33,7 +33,7 @@
 int dra;
 std::unique_ptr<Command> command;
 std::vector<std::unique_ptr<Command>> history;
-    int currentCommand = -1;
+int currentCommand = -1;
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -230,20 +230,11 @@ void Visualizer::run()
 
 void Visualizer::displayCall()
 {
-    // count= count +1;
+
 
     for( int i = 0; i < timeStepsPerFrame; i++ )
         solver->collision();
-
-        // if (count ==20)
-        // {
-        //   Commands::writeFlowFieldToVTK("flow_field_data.vtk", this->nx, this->ny,solver->getVelocityData() , solver->getPressureData());  
-        // }
-        
-
-       
-       
-        
+   
 
     nups = ulint(nx) *ulint(ny) * ulint(timeStepsPerFrame) * 1000.0 / stopWatch->getElapsedMilliSeconds();
     fps  = 1000.0 / stopWatch->getElapsedMilliSeconds();
@@ -360,7 +351,9 @@ if (currentCommand < static_cast<int>(history.size()) - 1) {
 
 void Visualizer::mouseMotionCallback(GLFWwindow* window, double xpos, double ypos)
 {
-    if( !isMouseButtonPressed ) return;
+    if( !isMouseButtonPressed ){
+                return;
+    } 
 
     float x = float(xpos);
     float y = float(ypos);
@@ -420,30 +413,29 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
             std::cout << "Press Shift with left or right mouse button to fill or erase whole areas" << std::endl;
             std::cout << "" << std::endl;
             std::cout << "b:  toggle BGK and Central Moment methods" << std::endl;
-            std::cout << "" << std::endl;
+            std::cout << "w:  toggle between wall and bounce-back boundary conditions" << std::endl;
             std::cout << "g:  Reset solid nodes" << std::endl;
             std::cout << "r:  Reset flow field" << std::endl;
             std::cout << "c:  Draw cylinder" << std::endl;
-            std::cout << "a:  Draw Airfoil" << std::endl;
-			std::cout << "m:  Draw Mesh" << std::endl;
-            std::cout << "" << std::endl;
+            std::cout << "m:  Draw mesh" << std::endl;
+            std::cout << "a:  Draw airfoil" << std::endl;
+            std::cout << "t:  Draw test geometry" << std::endl;
+            std::cout << "d:  Draw car geometry" << std::endl;
             std::cout << "p:  Show pressure field" << std::endl;
             std::cout << "v:  Show velocity field" << std::endl;
             std::cout << "s:  Scale color map" << std::endl;
-            std::cout << "" << std::endl;
             std::cout << "n:  Show performance" << std::endl;
-            std::cout << "" << std::endl;
-            std::cout << "Up:     increase viscosity by factor 10" << std::endl;
-            std::cout << "Down:   reduce viscosity by factor 10" << std::endl;
-            std::cout << "Right:  increase velocity by 0.01 dx/dt" << std::endl;
-            std::cout << "Left:   reduce velocity by 0.01 dx/dt" << std::endl;
-			std::cout << "1:      turn velocity clockwise" << std::endl;
-			std::cout << "2:      turn velocity anti-clockwise" << std::endl;
-            std::cout << "" << std::endl;
-            std::cout << "Page Up:    increase time steps per frame by one" << std::endl;
-            std::cout << "Page Down:  decrease time steps per frame by one" << std::endl;
-			std::cout << "0:	set 20 frames per second" << std::endl;
-            std::cout << "j:	output flow data" << std::endl;
+            std::cout << "Up/Down:  Adjust viscosity" << std::endl;
+            std::cout << "Right/Left:  Adjust velocity" << std::endl;
+            std::cout << "Page Up/Down:  Adjust time steps per frame" << std::endl;
+            std::cout << "1/2:  Rotate velocity vector" << std::endl;
+            std::cout << "0:  Set 20 frames per second" << std::endl;
+            std::cout << "j:  Output flow data" << std::endl;
+            std::cout << "q:  Load predefined geometry" << std::endl;
+            std::cout << "l:  Save flow field data to VTK file" << std::endl;
+            std::cout << "Ctr + Z:  Undo" << std::endl;
+            std::cout << "Ctr + Y:  Redo" << std::endl;
+            
             std::cout << "" << std::endl;
             std::cout << "================================================================================" << std::endl;
             break;
@@ -452,13 +444,15 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
             if( solver->getLBModel() == 'b' ){
                 solver->setLBModel('c');
                 std::cout << "Using central moment method!" << std::endl;
+                std::cout << solver->getLBModel() << std::endl;
 
 
             }
-            else{
+            else
+            {
                 solver->setLBModel('b');
                 std::cout << "Using BGK!" << std::endl;
-                std::cout << "Using central moment method!" << std::endl;
+                std::cout << solver->getLBModel() << std::endl;
 
             }
             break;
@@ -666,17 +660,33 @@ void Visualizer::keyboardCallback(GLFWwindow* window, int key, int scancode, int
             
             break;
 
-            case GLFW_KEY_J:
-             
-                if (currentCommand >= 0 && currentCommand < static_cast<int>(history.size())) {
+            case GLFW_KEY_Z:
+    if (mods & GLFW_MOD_CONTROL) {
+        if (action == GLFW_PRESS) {
+            if (currentCommand >= 0 && currentCommand < static_cast<int>(history.size())) {
                 history[currentCommand]->undo();
                 currentCommand--;
             }
+        }
+    
             
        
-        
+    }
             
             break;
+
+            case GLFW_KEY_Y:
+    if (mods & GLFW_MOD_CONTROL) {
+        if (action == GLFW_PRESS) {
+            if (currentCommand >= -1 && currentCommand < static_cast<int>(history.size()) - 1) {
+                currentCommand++;
+                history[currentCommand]->redo();
+            }
+        }
+    }
+    break;
+
+    
 
             case GLFW_KEY_T:
 

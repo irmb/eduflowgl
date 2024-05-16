@@ -1,27 +1,3 @@
-# image: fahad471/glwnd-x:latest
-
-
-# stages:
-#   - build
-
-
-# build:
-#   tags:
-#     - gpu
-#     - linux
-
-#   stage: build
-#   script:
-#     - cmake --version
-#     - nvcc --version
-#     - nvidia-smi
-#     - mkdir build
-#     - cd build
-#     - cmake ..
-#     - make
-#     - cp ../benchmark_data.vtk ./bin/benchmark_data.vtk
-#     - cd bin
-#     - ./Interactive-LBM-GPGPU test 0.00001
 image: fahad471/glwnd-x:latest
 
 stages:

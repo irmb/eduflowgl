@@ -22,8 +22,10 @@ void DrawCommand::execute() {
 
 
 void DrawCommand::undo() {
+
+laststate2 = solver->getgeoData();
 solver->setgeoData(laststate);
-char* laststate = new char[600000];
+
    
     
 
@@ -31,5 +33,5 @@ char* laststate = new char[600000];
 }
 
 void DrawCommand::redo() {
-    // Redo logic here if needed
+    solver->setgeoData(laststate2);
 }

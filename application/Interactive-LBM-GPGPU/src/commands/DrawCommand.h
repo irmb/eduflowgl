@@ -3,6 +3,7 @@
 
 #include "../Command.h"
 #include "../LBMSolver.h"
+#include <vector>
 
 
 
@@ -15,7 +16,8 @@ private:
     uint yIdxLast;
     char geo;
     int com;
-    char* laststate = new char[600000];
+    std::vector<char> laststate;
+    std::vector<char> laststate2;
     
 public:
     DrawCommand(LBMSolverPtr solver, uint xIdx, uint yIdx,uint xIdxLast,uint yIdxLast, char geo, int com) : solver(solver), xIdx(xIdx), yIdx(yIdx), xIdxLast(xIdxLast), yIdxLast(yIdxLast), geo(geo), com(com) {}

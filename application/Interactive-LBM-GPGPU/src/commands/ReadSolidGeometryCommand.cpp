@@ -34,7 +34,7 @@ void readSolidGeometryFromBMP(const char* bmpFilePath, LBMSolverPtr solver) {
             uint8_t pixelColor = pixelData[y * pitch + x * bmpSurface->format->BytesPerPixel];
 
             if (pixelColor != 0) {
-                solver->setGeo(x, 600 - y, GEO_SOLID); 
+                solver->setGeo(x, bmpSurface->h - y, GEO_SOLID); 
                 
             }
         }
@@ -83,5 +83,6 @@ try {
 }
 
 void ReadSolidGeometryCommand::redo() {
-    // Redo logic here if needed
+    execute();
+    
 }

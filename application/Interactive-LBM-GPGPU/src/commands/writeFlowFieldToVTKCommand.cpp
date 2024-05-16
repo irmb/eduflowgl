@@ -73,5 +73,5 @@ void writeFlowFieldToVTKCommand::undo() {
 }
 
 void writeFlowFieldToVTKCommand::redo() {
-    // Redo logic here if needed
+    
 }

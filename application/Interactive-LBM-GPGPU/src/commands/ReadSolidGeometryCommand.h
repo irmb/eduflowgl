@@ -3,14 +3,14 @@
 
 #include "../Command.h"
 #include "../LBMSolver.h"
-
+#include <vector>
 
 
 class ReadSolidGeometryCommand : public Command {
 private:
     LBMSolverPtr solver;
     std::string filePath;
-    char* laststate = new char[600000];
+    std::vector<char> laststate;
 
 public:
     ReadSolidGeometryCommand(const std::string& path, LBMSolverPtr solver) : filePath(path), solver(solver) {}
