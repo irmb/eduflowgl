@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: CC-BY-4.0
+# SPDX-FileCopyrightText: Copyright © Eduflow GL contributors
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - family-names: Zahid
+    given-names: Fahad
+  - family-names: Peters
+    given-names: Sören
+    orcid: https://orcid.org/0000-0001-5236-3776
+  - family-names: Lenz
+    given-names: Stephan
+  - family-names: Geier
+    given-names: Martin
+    orcid: https://orcid.org/0000-0002-8367-9412
+title: "EduflowGL"
+version: 1.0.0
+license: GPL-3.0-or-later
+repository-code: "https://git.rz.tu-bs.de/irmb/eduflowgl"
+date-released: "2024-05-22"
